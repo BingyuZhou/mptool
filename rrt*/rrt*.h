@@ -1,0 +1,3 @@
+class rrt_star
+{
+};
