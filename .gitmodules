@@ -1,0 +1,3 @@
+[submodule "ext/GUnit"]
+	path = ext/GUnit
+	url = git@github.com:cpp-testing/GUnit.git
