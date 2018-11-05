@@ -12,6 +12,7 @@ addons:
       - g++-7
       - cmake
 
+# Specify the compiler version
 env:
   - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
 
