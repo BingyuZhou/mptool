@@ -5,7 +5,7 @@
 
 typedef std::array<int, 2> point_2d;
 
-GTEST("test_kd_tree") {
+GTEST("test_kd_tree_2d") {
   KDtree<point_2d> my_kdtree;
   std::vector<point_2d> point_list{{2, 3}, {5, 4}, {9, 6},
                                    {4, 7}, {8, 1}, {7, 2}};
