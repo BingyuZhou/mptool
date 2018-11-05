@@ -7,12 +7,12 @@ typedef std::array<int, 2> point_2d;
 
 GTEST("test_kd_tree") {
   KDtree<point_2d> my_kdtree;
+  std::vector<point_2d> point_list{{2, 3}, {5, 4}, {9, 6},
+                                   {4, 7}, {8, 1}, {7, 2}};
 
   SHOULD("return_correct_tree_structure") {
-    std::vector<point_2d> point_list{{2, 3}, {5, 4}, {9, 6},
-                                     {4, 7}, {8, 1}, {7, 2}};
     int depth = 0;
-    Node<point_2d>* root =
+    Node<point_2d> *root =
         my_kdtree.build_tree(point_list.begin(), point_list.size(), depth);
     EXPECT_EQ(root->m_value[0], 7);
     EXPECT_EQ(root->m_value[1], 2);
@@ -22,5 +22,29 @@ GTEST("test_kd_tree") {
     EXPECT_EQ(root->m_right->m_value[1], 6);
     EXPECT_EQ(root->m_right->m_left->m_value[0], 8);
     EXPECT_EQ(root->m_left->m_left->m_value[0], 2);
+  }
+
+  SHOULD("return_nearest_neighbor") {
+    my_kdtree.construct_tree(point_list);
+    EXPECT_EQ(my_kdtree.get_root()->m_value[0], 7);
+    point_2d node{6, 2};
+    point_2d nearest;
+    nearest = my_kdtree.nearest_neighbor(node);
+    EXPECT_EQ(nearest[0], 7);
+    EXPECT_EQ(nearest[1], 2);
+    node = {10, 3};
+    nearest = my_kdtree.nearest_neighbor(node);
+    EXPECT_EQ(nearest[0], 8);
+    EXPECT_EQ(nearest[1], 1);
+
+    node = {8, 3};
+    nearest = my_kdtree.nearest_neighbor(node);
+    EXPECT_EQ(nearest[0], 7);
+    EXPECT_EQ(nearest[1], 2);
+
+    node = {1, 1};
+    nearest = my_kdtree.nearest_neighbor(node);
+    EXPECT_EQ(nearest[0], 2);
+    EXPECT_EQ(nearest[1], 3);
   }
 }
