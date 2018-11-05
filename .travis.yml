@@ -28,7 +28,7 @@ before_install:
 script:
   - mkdir build
   - cd build
-  - --enable-gcov && cmake .. && make -j12 && ctest -j12
+  - cmake .. -DCOVERALLS=ON && make -j12 && ctest -j12
 
 after_success:
   - coveralls --exclude lib --exclude tests --gcov-options '\-lp'
