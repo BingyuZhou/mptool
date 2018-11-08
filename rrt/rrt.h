@@ -1,6 +1,5 @@
 #include <vector>
-#include "../util/kdtree.h"
-
+#include "../util/obstacle_sym.h"
 template <class PointType>
 class rrt_node
 {
@@ -15,8 +14,14 @@ public:
 template <class PointType>
 class rrt : private KDtree
 {
+  const std::vector<int> m_state_space_boundaty;
+  const std::vector<obstacle *> m_obstacles;
+  const int m_dimension;
+
 public:
-  PointType random_sample();
+  rrt(const std::vector<int> &state_space, const std::vector<obstacle *> &obstacles, const int &dim);
+  PointType random_sample_2d();
+  PointType random_sample_3d();
   bool obstacle_free();
   virtual void extend(rrt_node<PointType> *sampled_node);
 };
