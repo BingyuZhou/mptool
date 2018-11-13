@@ -47,4 +47,16 @@ GTEST("test_kd_tree_2d") {
     EXPECT_EQ(nearest[0], 2);
     EXPECT_EQ(nearest[1], 3);
   }
+
+  SHOULD("add_new_node_to_kdtree") {
+    my_kdtree.construct_tree(point_list);
+    point_2d node{5, 1};
+    my_kdtree.add_node(node);
+    EXPECT_EQ(my_kdtree.get_root()->m_left->m_left->m_right->m_value[0],
+              node[0]);
+    node = {7, 1};
+    my_kdtree.add_node(node);
+    EXPECT_EQ(my_kdtree.get_root()->m_left->m_left->m_right->m_left->m_value[0],
+              node[0]);
+  }
 }

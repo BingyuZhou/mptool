@@ -8,9 +8,8 @@
 #include <vector>
 
 template <class PointType>
-class Node
-{
-public:
+class Node {
+ public:
   Node *m_left, *m_right, *m_parent;
   int m_distance;
   int m_split_axis;
@@ -23,31 +22,23 @@ public:
 };
 
 template <class PointType>
-class KDtree
-{
+class KDtree {
   Node<PointType> *m_root;
 
-public:
+ public:
   KDtree(){};
   ~KDtree(){};
-  KDtree(const std::vector<PointType> &point_list)
-  {
-    build_tree(point_list.begin(), point_list.size(), 0);
-  };
 
   Node<PointType> *get_root() { return m_root; };
 
-  void construct_tree(typename std::vector<PointType> &point_list)
-  {
+  void construct_tree(typename std::vector<PointType> &point_list) {
     m_root = build_tree(point_list.begin(), point_list.size(), 0);
   };
 
   Node<PointType> *build_tree(
       const typename std::vector<PointType>::iterator &point_start,
-      const int length, int depth)
-  {
-    if (length == 0)
-      return NULL;
+      const int length, int depth) {
+    if (length == 0) return NULL;
 
     int dimention = (*point_start).size();
 
@@ -56,7 +47,7 @@ public:
     std::sort(point_start, point_start + length,
               [&](const PointType &n1, const PointType &n2) {
                 return n1[axis] < n2[axis];
-              }); // O(NlogN)
+              });  // O(NlogN)
 
     int median = length / 2;
 
@@ -64,18 +55,44 @@ public:
         new Node<PointType>(*(point_start + median));
     current_node->m_split_axis = axis;
     current_node->m_left = build_tree(point_start, median, ++depth);
-    if (current_node->m_left)
-      current_node->m_left->m_parent = current_node;
+    if (current_node->m_left) current_node->m_left->m_parent = current_node;
     current_node->m_right =
         build_tree(point_start + median + 1, length - median - 1, ++depth);
-    if (current_node->m_right)
-      current_node->m_right->m_parent = current_node;
+    if (current_node->m_right) current_node->m_right->m_parent = current_node;
 
     return current_node;
   };
 
-  PointType nearest_neighbor(const PointType &node_new)
-  {
+  void add_node(PointType node_add) {
+    int dimention = node_add.size();
+    if (m_root == NULL)
+      m_root = new Node<PointType>(node_add);
+    else {
+      Node<PointType> *node_tmp = m_root;
+      while (true) {
+        if (node_add[node_tmp->m_split_axis] <=
+            node_tmp->m_value[node_tmp->m_split_axis]) {
+          if (node_tmp->m_left == NULL) {
+            node_tmp->m_left = new Node<PointType>(node_add);
+            node_tmp->m_left->m_split_axis =
+                (node_tmp->m_split_axis + 1) % dimention;
+            break;
+          } else
+            node_tmp = node_tmp->m_left;
+        } else {
+          if (node_tmp->m_right == NULL) {
+            node_tmp->m_right = new Node<PointType>(node_add);
+            node_tmp->m_right->m_split_axis =
+                (node_tmp->m_split_axis + 1) % dimention;
+            break;
+          } else
+            node_tmp = node_tmp->m_right;
+        }
+      }
+    }
+  }
+
+  PointType nearest_neighbor(const PointType &node_new) {
     // Find the nearest neighbor of the node_new in the kd tree
 
     PointType nearest = m_root->m_value;
@@ -83,8 +100,7 @@ public:
       assert(n1.size() == n2.size());
       int dis = 0;
 
-      for (int i = n1.size() - 1; i >= 0; --i)
-      {
+      for (int i = n1.size() - 1; i >= 0; --i) {
         dis += (n1[i] - n2[i]) * (n1[i] - n2[i]);
       }
       return dis;
@@ -94,8 +110,7 @@ public:
     int shortest_distance = calc_distance(node_new, m_root->m_value);
     m_root->m_distance = shortest_distance;
 
-    while (!min_heap.empty())
-    {
+    while (!min_heap.empty()) {
       std::pop_heap(min_heap.begin(), min_heap.end(),
                     [](Node<PointType> *n1, Node<PointType> *n2) {
                       return n1->m_distance > n2->m_distance;
@@ -103,8 +118,7 @@ public:
       Node<PointType> *current_node = min_heap.back();
       min_heap.pop_back();
 
-      if (current_node->m_distance < shortest_distance)
-      {
+      if (current_node->m_distance < shortest_distance) {
         shortest_distance = current_node->m_distance;
         nearest = current_node->m_value;
       }
@@ -139,13 +153,11 @@ public:
           current_node->m_value[current_node->m_split_axis] -
           node_new[current_node->m_split_axis];
       if (shortest_distance <=
-          dis_to_hyperplane * dis_to_hyperplane) // compare square distance
+          dis_to_hyperplane * dis_to_hyperplane)  // compare square distance
       {
         if (node_new[current_node->m_split_axis] <
-            current_node->m_value[current_node->m_split_axis])
-        {
-          if (current_node->m_left)
-          {
+            current_node->m_value[current_node->m_split_axis]) {
+          if (current_node->m_left) {
             current_node->m_left->m_distance =
                 calc_distance(node_new, current_node->m_left->m_value);
             min_heap.push_back(current_node->m_left);
@@ -154,11 +166,8 @@ public:
                              return n1->m_distance < n2->m_distance;
                            });
           }
-        }
-        else
-        {
-          if (current_node->m_right)
-          {
+        } else {
+          if (current_node->m_right) {
             current_node->m_right->m_distance =
                 calc_distance(node_new, current_node->m_right->m_value);
             min_heap.push_back(current_node->m_right);
@@ -168,11 +177,8 @@ public:
                            });
           }
         }
-      }
-      else
-      {
-        if (current_node->m_left)
-        {
+      } else {
+        if (current_node->m_left) {
           current_node->m_left->m_distance =
               calc_distance(node_new, current_node->m_left->m_value);
           min_heap.push_back(current_node->m_left);
@@ -181,8 +187,7 @@ public:
                            return n1->m_distance > n2->m_distance;
                          });
         }
-        if (current_node->m_right)
-        {
+        if (current_node->m_right) {
           current_node->m_right->m_distance =
               calc_distance(node_new, current_node->m_right->m_value);
           min_heap.push_back(current_node->m_right);
