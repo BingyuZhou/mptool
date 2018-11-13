@@ -3,9 +3,9 @@
  */
 #pragma once
 
-#include <assert.h>
 #include <algorithm>
 #include <vector>
+#include "utils.h"
 
 template <class PointType>
 class Node {
@@ -96,18 +96,9 @@ class KDtree {
     // Find the nearest neighbor of the node_new in the kd tree
 
     PointType nearest = m_root->m_value;
-    auto calc_distance = [](const PointType &n1, const PointType &n2) {
-      assert(n1.size() == n2.size());
-      int dis = 0;
-
-      for (int i = n1.size() - 1; i >= 0; --i) {
-        dis += (n1[i] - n2[i]) * (n1[i] - n2[i]);
-      }
-      return dis;
-    };
 
     std::vector<Node<PointType> *> min_heap{m_root};
-    int shortest_distance = calc_distance(node_new, m_root->m_value);
+    int shortest_distance = euclidian_dis(node_new, m_root->m_value);
     m_root->m_distance = shortest_distance;
 
     while (!min_heap.empty()) {
@@ -159,7 +150,7 @@ class KDtree {
             current_node->m_value[current_node->m_split_axis]) {
           if (current_node->m_left) {
             current_node->m_left->m_distance =
-                calc_distance(node_new, current_node->m_left->m_value);
+                euclidian_dis(node_new, current_node->m_left->m_value);
             min_heap.push_back(current_node->m_left);
             std::push_heap(min_heap.begin(), min_heap.end(),
                            [](Node<PointType> *n1, Node<PointType> *n2) {
@@ -169,7 +160,7 @@ class KDtree {
         } else {
           if (current_node->m_right) {
             current_node->m_right->m_distance =
-                calc_distance(node_new, current_node->m_right->m_value);
+                euclidian_dis(node_new, current_node->m_right->m_value);
             min_heap.push_back(current_node->m_right);
             std::push_heap(min_heap.begin(), min_heap.end(),
                            [](Node<PointType> *n1, Node<PointType> *n2) {
@@ -180,7 +171,7 @@ class KDtree {
       } else {
         if (current_node->m_left) {
           current_node->m_left->m_distance =
-              calc_distance(node_new, current_node->m_left->m_value);
+              euclidian_dis(node_new, current_node->m_left->m_value);
           min_heap.push_back(current_node->m_left);
           std::push_heap(min_heap.begin(), min_heap.end(),
                          [](Node<PointType> *n1, Node<PointType> *n2) {
@@ -189,7 +180,7 @@ class KDtree {
         }
         if (current_node->m_right) {
           current_node->m_right->m_distance =
-              calc_distance(node_new, current_node->m_right->m_value);
+              euclidian_dis(node_new, current_node->m_right->m_value);
           min_heap.push_back(current_node->m_right);
           std::push_heap(min_heap.begin(), min_heap.end(),
                          [](Node<PointType> *n1, Node<PointType> *n2) {
