@@ -3,7 +3,6 @@
  **/
 
 #include "rrt.h"
-#include "../util/kdtree.h"
 
 #include <algorithm>
 #include <cassert>
@@ -42,7 +41,7 @@ rrt<PointType>::rrt(const std::vector<int> &state_space,
     : m_state_space_boundary(state_space),
       m_obstacles(obstacles),
       m_dimension(dim),
-      m_initial(initial_point),
+      m_init(initial_point),
       m_goal(goal),
       m_radius(radius) {
   m_node_set.insert(rrt_node<PointType>(initial_point));
@@ -52,9 +51,9 @@ template <class PointType>
 PointType rrt<PointType>::random_sample_2d() {
   auto seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::default_random_engine generator(seed);
-  std::uniform_int_distribution<int> distribution_x(m_state_space_boundaty[0],
-                                                    m_state_space_boundaty[1]);
-  std::uniform_int_distribution<int> distribution_y(m_state_space_boundaty[2],
+  std::uniform_int_distribution<int> distribution_x(m_state_space_boundary[0],
+                                                    m_state_space_boundary[1]);
+  std::uniform_int_distribution<int> distribution_y(m_state_space_boundary[2],
                                                     m_state_space_boundary[3]);
 
   int x = distribution_x(generator);
@@ -86,8 +85,14 @@ PointType rrt<PointType>::random_sample_2d() {
   return sample_point;
 }
 
+template <class PointType>
 PointType random_sample_3d();
-bool obstacle_free();
+
+template <class PointType>
+bool obstacle_free() {
+  // TODO:
+  return true;
+};
 
 template <class PointType>
 PointType rrt<PointType>::steer(const rrt_node<PointType> &nearest,
@@ -108,9 +113,15 @@ template <class PointType>
 void rrt<PointType>::extend(const PointType &sampled_node) {
   PointType nearest_val = my_kdtree.nearest_neighbor(sampled_node);
   rrt_node<PointType> tmp = rrt_node<PointType>(nearest_val);
-  std::unordered_set<rrt_node<PointType>, rrt_node_hash>::const_iterator
-      nearest_it = m_node_set.find(tmp);
+  typename std::unordered_set<rrt_node<PointType>>::const_iterator nearest_it =
+      m_node_set.find(tmp);
   assert(nearest_it != m_node_set.end());
 
-  PointType new_node = steer(*it, sampled_node);
+  PointType new_node = steer(*nearest_it, sampled_node);
+
+  if (obstacle_free((*nearest_it)->m_value, new_node)) {
+    rrt_node<PointType> *node = new rrt_node<PointType>(new_node);
+    (*nearest_it)->m_children.push_back(node);
+    node->m_parent = &(*nearest_it);
+  }
 }
