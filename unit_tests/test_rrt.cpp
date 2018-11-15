@@ -19,7 +19,7 @@ GTEST("test_rrt_sample") {
   std::vector<obstacle*> obstacles{obs1, obs2, obs3, obs4};
 
   point_2d initial_point{0.0f, -10.0f};
-  point_2d goal{10.0f, 10.0f};
+  point_2d goal{2.0f, 0.0f};
   int radius = 1;
   int dim = 2;
   rrt<point_2d> rrt_solver(state_space, obstacles, dim, initial_point, goal,
@@ -33,28 +33,58 @@ GTEST("test_rrt_sample") {
     EXPECT_LE(sample[1], 10);
     EXPECT_GE(sample[1], -10);
 
-    auto inside_obstacle_area = [](point_2d point, const obstacle* obs) {
-      if (point[0] > obs->top_left.first &&
-          point[0] < obs->bottom_right.first &&
-          point[1] > obs->bottom_right.second &&
-          point[1] < obs->top_left.second)
-        return true;
-      else
-        return false;
-    };
-
-    EXPECT_FALSE(inside_obstacle_area(sample, obs1));
-    EXPECT_FALSE(inside_obstacle_area(sample, obs2));
-    EXPECT_FALSE(inside_obstacle_area(sample, obs3));
-    EXPECT_FALSE(inside_obstacle_area(sample, obs4));
+    EXPECT_FALSE(inside_obstacle_area<point_2d>(obs1, sample));
+    EXPECT_FALSE(inside_obstacle_area<point_2d>(obs2, sample));
+    EXPECT_FALSE(inside_obstacle_area<point_2d>(obs3, sample));
+    EXPECT_FALSE(inside_obstacle_area<point_2d>(obs4, sample));
   }
 
   SHOULD("test_steer_functionality") {
     point_2d sample = rrt_solver.random_sample_2d();
     point_2d nearest{5, 5};
     point_2d new_node = rrt_solver.steer(nearest, sample);
-    std::cout << new_node[0] << " " << new_node[1] << std::endl;
+    // std::cout << new_node[0] << " " << new_node[1] << std::endl;
 
     EXPECT_LE(euclidian_dis(new_node, nearest), radius + EPS);
+  }
+
+  SHOULD("COLLISION_CHECK") {
+    point_2d start{0, 1};
+    point_2d end{10, 1};
+    bool res = rrt_solver.obstacle_free(start, end);
+    EXPECT_FALSE(res);
+
+    start = {9.5, -2};
+    end = {8, 6};
+    res = rrt_solver.obstacle_free(start, end);
+    EXPECT_FALSE(res);
+
+    start = {7.2, -2};
+    end = {3.5, 9};
+    res = rrt_solver.obstacle_free(start, end);
+    EXPECT_TRUE(res);
+
+    start = {2, 0};
+    end = {3, 0};
+    res = rrt_solver.obstacle_free(start, end);
+    EXPECT_TRUE(res);
+  }
+  SHOULD("TEST_EXTEND_GRAPH") {
+    point_2d sample = rrt_solver.random_sample_2d();
+    std::cout << sample[0] << " " << sample[1] << std::endl;
+    rrt_solver.extend(sample);
+
+    Node<point_2d>* root = rrt_solver.my_kdtree.get_root();
+
+    std::queue<Node<point_2d>*> q;
+    q.push(root);
+
+    while (!q.empty()) {
+      Node<point_2d>* node = q.front();
+      q.pop();
+      std::cout << node->m_value[0] << " " << node->m_value[1] << std::endl;
+      if (node->m_left) q.push(node->m_left);
+      if (node->m_right) q.push(node->m_right);
+    }
   }
 }

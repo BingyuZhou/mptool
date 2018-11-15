@@ -25,16 +25,6 @@ template <class PointType>
 class KDtree {
   Node<PointType> *m_root;
 
- public:
-  KDtree(){};
-  ~KDtree(){};
-
-  Node<PointType> *get_root() { return m_root; };
-
-  void construct_tree(typename std::vector<PointType> &point_list) {
-    m_root = build_tree(point_list.begin(), point_list.size(), 0);
-  };
-
   Node<PointType> *build_tree(
       const typename std::vector<PointType>::iterator &point_start,
       const int length, int depth) {
@@ -61,6 +51,16 @@ class KDtree {
     if (current_node->m_right) current_node->m_right->m_parent = current_node;
 
     return current_node;
+  };
+
+ public:
+  KDtree(){};
+  ~KDtree(){};
+
+  Node<PointType> *get_root() { return m_root; };
+
+  void construct_tree(typename std::vector<PointType> &point_list) {
+    m_root = build_tree(point_list.begin(), point_list.size(), 0);
   };
 
   void add_node(PointType node_add) {

@@ -12,8 +12,8 @@ GTEST("test_kd_tree_2d") {
 
   SHOULD("return_correct_tree_structure") {
     int depth = 0;
-    Node<point_2d> *root =
-        my_kdtree.build_tree(point_list.begin(), point_list.size(), depth);
+    my_kdtree.construct_tree(point_list);
+    Node<point_2d> *root = my_kdtree.get_root();
     EXPECT_EQ(root->m_value[0], 7);
     EXPECT_EQ(root->m_value[1], 2);
     EXPECT_EQ(root->m_left->m_value[0], 5);

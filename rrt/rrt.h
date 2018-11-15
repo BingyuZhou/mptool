@@ -99,7 +99,10 @@ rrt<PointType>::rrt(const std::vector<int> &state_space,
       m_init(initial_point),
       m_goal(goal),
       m_radius(radius) {
-  m_node_map.insert({initial_point, rrt_node<PointType>(initial_point)});
+  m_node_map.insert({{initial_point, rrt_node<PointType>(initial_point)},
+                     {goal, rrt_node<PointType>(goal)}});
+  std::vector<PointType> point_list{initial_point, goal};
+  my_kdtree.construct_tree(point_list);
 };
 
 template <class PointType>
@@ -112,23 +115,16 @@ PointType rrt<PointType>::random_sample_2d() {
   std::uniform_real_distribution<float> distribution_y(
       m_state_space_boundary[2], m_state_space_boundary[3]);
 
-  float x = distribution_x(generator);
-  float y = distribution_y(generator);
   PointType sample_point;
+  sample_point[0] = distribution_x(generator);
+  sample_point[1] = distribution_y(generator);
 
-  auto inside_obstacle_area = [&](const obstacle *obs) {
-    if (x > obs->top_left.first && x < obs->bottom_right.first &&
-        y > obs->bottom_right.second && y < obs->top_left.second)
-      return true;
-    else
-      return false;
-  };
   int count = 0;
   while (true) {
     for (auto obs : m_obstacles) {
-      if (inside_obstacle_area(obs)) {
-        x = distribution_x(generator);
-        y = distribution_y(generator);
+      if (inside_obstacle_area<PointType>(obs, sample_point)) {
+        sample_point[0] = distribution_x(generator);
+        sample_point[1] = distribution_y(generator);
         count = 0;
         break;
       }
@@ -136,8 +132,7 @@ PointType rrt<PointType>::random_sample_2d() {
     }
     if (count == m_obstacles.size()) break;
   }
-  sample_point[0] = x;
-  sample_point[1] = y;
+
   return sample_point;
 }
 
@@ -147,7 +142,21 @@ PointType rrt<PointType>::random_sample_3d(){};
 template <class PointType>
 bool rrt<PointType>::obstacle_free(const PointType start,
                                    const PointType &end) {
-  // TODO:
+  // Note: the distance form start to end less or equal to radius
+  float dis = euclidian_dis(start, end);
+  std::default_random_engine generator;
+  std::uniform_real_distribution<float> distribution(0, dis);
+
+  // Sampling check for 10 samples, O(10*N) where N is the number of obstacles
+  for (int i = 0; i < 10; ++i) {
+    PointType point;
+    float sample_dis = distribution(generator);
+    point[0] = start[0] + sample_dis / dis * (end[0] - start[0]);
+    point[1] = start[1] + sample_dis / dis * (end[1] - start[1]);
+
+    for (auto obs : m_obstacles)
+      if (inside_obstacle_area<PointType>(obs, point)) return false;
+  }
   return true;
 };
 
@@ -181,5 +190,6 @@ void rrt<PointType>::extend(const PointType &sampled_node) {
     rrt_node<PointType> node(new_node);
     nearest_it->second.m_children.push_back(&node);
     node.m_parent = &(nearest_it->second);
+    my_kdtree.add_node(new_node);
   }
 }
