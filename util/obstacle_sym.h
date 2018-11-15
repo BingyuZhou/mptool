@@ -2,8 +2,10 @@
 
 #include <utility>
 
-struct obstacle
-{
-    std::pair<float, float> top_left;
-    std::pair<float, float> bottom_right;
+struct obstacle {
+  const std::pair<float, float> top_left;
+  const std::pair<float, float> bottom_right;
+
+  obstacle(const std::pair<float, float>& tl, const std::pair<float, float>& br)
+      : top_left(tl), bottom_right(br){};
 };
