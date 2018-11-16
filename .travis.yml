@@ -8,13 +8,13 @@ dist: xenial
 addons:
   apt:
     sources:
-      - sourceline: 'ppa:mhier/libboost-latest'
+      - boost-latest
       - ubuntu-toolchain-r-test
     packages:
       - gcc-7
       - g++-7
       - cmake
-      - boost
+      - libboost1.65-all-dev
 
 # Specify the compiler version
 env:
