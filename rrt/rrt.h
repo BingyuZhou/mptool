@@ -1,5 +1,9 @@
 #pragma once
 
+/***
+ * RRT(Rapidly explored Random Tree) algorithm
+ **/
+
 #include <boost/functional/hash.hpp>
 #include <unordered_map>
 #include <vector>
@@ -34,9 +38,11 @@ class rrt {
   const PointType m_init;
   const PointType m_goal;
   const int m_radius;
+  const float EPSILON = 0.05;  // distance tolerant at goal location
   rrt_node<PointType> *m_root;
   std::unordered_map<PointType, rrt_node<PointType>, rrt_node_hash<PointType>>
       m_node_map;  // have to use map, since we need to modify the node
+  rrt_node<PointType> *m_reached;  // reached point near goal
 
  public:
   rrt(const std::vector<int> &state_space,
@@ -48,15 +54,13 @@ class rrt {
   PointType random_sample_3d();
   bool obstacle_free(const PointType start, const PointType &end);
   PointType steer(const PointType &nearest, const PointType &sample);
-  virtual void extend(const PointType &sampled_node);
+  virtual bool extend(const PointType &sampled_node);
 
-  void run(int iteration);
+  bool run(int iteration);
+  void get_path(std::vector<PointType> &path);
 };
 
 //------------------------DEFINATION--------------------------
-/***
- * RRT(Rapidly explored Random Tree) algorithm
- **/
 
 #include "rrt.h"
 
@@ -101,9 +105,8 @@ rrt<PointType>::rrt(const std::vector<int> &state_space,
       m_init(initial_point),
       m_goal(goal),
       m_radius(radius) {
-  m_node_map.insert({{initial_point, rrt_node<PointType>(initial_point)},
-                     {goal, rrt_node<PointType>(goal)}});
-  std::vector<PointType> point_list{initial_point, goal};
+  m_node_map.insert({initial_point, rrt_node<PointType>(initial_point)});
+  std::vector<PointType> point_list{initial_point};
   my_kdtree.construct_tree(point_list);
 };
 
@@ -178,7 +181,7 @@ PointType rrt<PointType>::steer(const PointType &nearest,
 };
 
 template <class PointType>
-void rrt<PointType>::extend(const PointType &sampled_node) {
+bool rrt<PointType>::extend(const PointType &sampled_node) {
   PointType nearest_val = my_kdtree.nearest_neighbor(
       sampled_node);  // find the nearest neighbor in kdtree
 
@@ -195,8 +198,45 @@ void rrt<PointType>::extend(const PointType &sampled_node) {
     node.m_parent = &(nearest_it->second);
     my_kdtree.add_node(new_node);
     m_node_map.insert({new_node, node});
+
+    if (euclidian_dis(new_node, m_goal) <= EPSILON) {
+      m_reached = &node;
+      return true;
+    }
+    return false;
   }
 }
 
+/**
+ * RRT
+ * rrt initializes with start state
+ * for i=1:N:
+ *    x_rand = sample(i)
+ *    x_nearest = kd_tree.NN(x_rand)
+ *    x_new = steer(x_nearest, x_rand)
+ *    if(obstacle_free(x_new, x_nearest))
+ *        kd_tree.add(x_new)
+ *        rrt.add(x_new)
+ *        check if x_new at goal location
+ **/
 template <class PointType>
-void rrt<PointType>::run(int iteration) {}
+bool rrt<PointType>::run(int iteration) {
+  bool goal_reached = false;
+  for (int i = 0; i < iteration; ++i) {
+    PointType x_rand;
+    if (m_dimension == 2) x_rand = random_sample_2d();
+    if (m_dimension == 3) x_rand = random_sample_3d();
+
+    if (extend(x_rand)) return true;  // reach the goal location
+  }
+  return false;  // run out of iteration with failing to reach goal
+}
+
+template <class PointType>
+void rrt<PointType>::get_path(std::vector<PointType> &path) {
+  rrt_node<PointType> tmp = m_reached;
+  while (tmp) {
+    path.push_back(tmp.m_value);
+    tmp = tmp.m_parent;
+  }
+}

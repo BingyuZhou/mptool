@@ -71,8 +71,8 @@ GTEST("test_rrt_sample") {
   }
   SHOULD("TEST_EXTEND_GRAPH") {
     point_2d sample = rrt_solver.random_sample_2d();
-    std::cout << sample[0] << " " << sample[1] << std::endl;
-    rrt_solver.extend(sample);
+    // std::cout << sample[0] << " " << sample[1] << std::endl;
+    bool goal_reached = rrt_solver.extend(sample);
 
     Node<point_2d>* root = rrt_solver.my_kdtree.get_root();
 
@@ -87,4 +87,6 @@ GTEST("test_rrt_sample") {
       if (node->m_right) q.push(node->m_right);
     }
   }
+
+  SHOULD("FIND_THE_PATH") {}
 }

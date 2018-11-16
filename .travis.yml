@@ -1,6 +1,8 @@
 language: cpp
 compiler: gcc
 
+dist: xenial
+
 # Handle git submodules yourself
 
 addons:
@@ -11,7 +13,7 @@ addons:
       - gcc-7
       - g++-7
       - cmake
-      - boost1.67
+      - boost1.65
 
 # Specify the compiler version
 env:
