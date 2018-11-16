@@ -36,7 +36,7 @@ class rrt {
   const int m_radius;
   rrt_node<PointType> *m_root;
   std::unordered_map<PointType, rrt_node<PointType>, rrt_node_hash<PointType>>
-      m_node_map;
+      m_node_map;  // have to use map, since we need to modify the node
 
  public:
   rrt(const std::vector<int> &state_space,
@@ -177,11 +177,12 @@ PointType rrt<PointType>::steer(const PointType &nearest,
 
 template <class PointType>
 void rrt<PointType>::extend(const PointType &sampled_node) {
-  PointType nearest_val = my_kdtree.nearest_neighbor(sampled_node);
+  PointType nearest_val = my_kdtree.nearest_neighbor(
+      sampled_node);  // find the nearest neighbor in kdtree
 
   typename std::unordered_map<PointType, rrt_node<PointType>,
                               rrt_node_hash<PointType>>::iterator nearest_it =
-      m_node_map.find(nearest_val);
+      m_node_map.find(nearest_val);  // find the equivalent node in rrt
   assert(nearest_it != m_node_map.end());
 
   PointType new_node = steer(nearest_it->first, sampled_node);
@@ -191,5 +192,6 @@ void rrt<PointType>::extend(const PointType &sampled_node) {
     nearest_it->second.m_children.push_back(&node);
     node.m_parent = &(nearest_it->second);
     my_kdtree.add_node(new_node);
+    m_node_map.insert({new_node, node});
   }
 }
