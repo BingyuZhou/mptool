@@ -39,6 +39,7 @@ class rrt {
   const PointType m_goal;
   const int m_radius;
   const float EPSILON = 0.05;  // distance tolerant at goal location
+  const float m_bias = 0.1;    // bias of goal distribution
 
   std::unordered_map<PointType, rrt_node<PointType> *, rrt_node_hash<PointType>>
       m_node_map;  // have to use map, since we need to modify the node
@@ -48,7 +49,7 @@ class rrt {
   rrt(const std::vector<int> &state_space,
       const std::vector<obstacle *> &obstacles, const int &dim,
       const PointType &initial_point, const PointType &goal, const int &radius);
-
+  void set_bias(float bias);
   KDtree<PointType> my_kdtree;
   PointType random_sample_2d();
   PointType random_sample_3d();
@@ -112,34 +113,43 @@ rrt<PointType>::rrt(const std::vector<int> &state_space,
 };
 
 template <class PointType>
+void rrt<PointType>::set_bias(float bias) {
+  m_bias = bias;
+}
+
+template <class PointType>
 PointType rrt<PointType>::random_sample_2d() {
-  auto seed = std::chrono::system_clock::now().time_since_epoch().count();
-  std::default_random_engine generator(seed);
+  if (rand() % 10 / 10.0f < m_bias)
+    return m_goal;
+  else {
+    auto seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::default_random_engine generator(seed);
 
-  std::uniform_real_distribution<float> distribution_x(
-      m_state_space_boundary[0], m_state_space_boundary[1]);
-  std::uniform_real_distribution<float> distribution_y(
-      m_state_space_boundary[2], m_state_space_boundary[3]);
+    std::uniform_real_distribution<float> distribution_x(
+        m_state_space_boundary[0], m_state_space_boundary[1]);
+    std::uniform_real_distribution<float> distribution_y(
+        m_state_space_boundary[2], m_state_space_boundary[3]);
 
-  PointType sample_point;
-  sample_point[0] = distribution_x(generator);
-  sample_point[1] = distribution_y(generator);
+    PointType sample_point;
+    sample_point[0] = distribution_x(generator);
+    sample_point[1] = distribution_y(generator);
 
-  int count = 0;
-  while (true) {
-    for (auto obs : m_obstacles) {
-      if (inside_obstacle_area<PointType>(obs, sample_point)) {
-        sample_point[0] = distribution_x(generator);
-        sample_point[1] = distribution_y(generator);
-        count = 0;
-        break;
+    int count = 0;
+    while (true) {
+      for (auto obs : m_obstacles) {
+        if (inside_obstacle_area<PointType>(obs, sample_point)) {
+          sample_point[0] = distribution_x(generator);
+          sample_point[1] = distribution_y(generator);
+          count = 0;
+          break;
+        }
+        ++count;
       }
-      ++count;
+      if (count == m_obstacles.size()) break;
     }
-    if (count == m_obstacles.size()) break;
-  }
 
-  return sample_point;
+    return sample_point;
+  }
 }
 
 template <class PointType>

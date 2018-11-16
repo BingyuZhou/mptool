@@ -20,8 +20,8 @@ GTEST("test_rrt") {
 
   std::vector<obstacle*> obstacles{obs1, obs2, obs3, obs4};
 
-  point_2d initial_point{0.0f, -10.0f};
-  point_2d goal{8.0f, 0.0f};
+  point_2d initial_point{5.0f, -9.0f};
+  point_2d goal{0.0f, 10.0f};
   int radius = 1;
   int dim = 2;
   rrt<point_2d> rrt_solver(state_space, obstacles, dim, initial_point, goal,
