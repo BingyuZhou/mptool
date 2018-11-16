@@ -49,6 +49,8 @@ class rrt {
   bool obstacle_free(const PointType start, const PointType &end);
   PointType steer(const PointType &nearest, const PointType &sample);
   virtual void extend(const PointType &sampled_node);
+
+  void run(int iteration);
 };
 
 //------------------------DEFINATION--------------------------
@@ -195,3 +197,6 @@ void rrt<PointType>::extend(const PointType &sampled_node) {
     m_node_map.insert({new_node, node});
   }
 }
+
+template <class PointType>
+void rrt<PointType>::run(int iteration) {}

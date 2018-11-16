@@ -11,6 +11,7 @@ addons:
       - gcc-7
       - g++-7
       - cmake
+      - boost1.67
 
 # Specify the compiler version
 env:
