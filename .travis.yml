@@ -22,7 +22,7 @@ addons:
       - gcc-7
       - g++-7
       - cmake
-      - libboost
+      - libboost1.62-all-dev
 
 # Specify the compiler version
 env:
