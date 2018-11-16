@@ -12,7 +12,7 @@ before_install:
     - git submodule update --init --recursive
     - eval "${MATRIX_EVAL}"
     - pip install --user cpp-coveralls
-    - sudo apt get update
+    - sudo apt-get update
 addons:
   apt:
     sources:
