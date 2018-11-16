@@ -5,7 +5,7 @@
 const float EPS = 0.1f;
 typedef std::array<float, 2> point_2d;
 
-GTEST("test_rrt_sample") {
+GTEST("test_rrt") {
   std::vector<int> state_space{0, 10, -10, 10};
   obstacle* obs1 =
       new obstacle(std::make_pair(1.0f, 9.0f), std::make_pair(3.0f, 7.0f));
@@ -88,5 +88,5 @@ GTEST("test_rrt_sample") {
     }
   }
 
-  SHOULD("FIND_THE_PATH") { rr }
+  SHOULD("FIND_THE_PATH") { bool reached = rrt_solver.run(100); }
 }
