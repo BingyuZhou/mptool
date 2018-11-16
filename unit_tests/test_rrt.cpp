@@ -88,5 +88,9 @@ GTEST("test_rrt") {
     }
   }
 
-  SHOULD("FIND_THE_PATH") { bool reached = rrt_solver.run(100); }
+  SHOULD("FIND_THE_PATH") {
+    bool reached = rrt_solver.run(100);
+    std::vector<point_2d> p;
+    if (reached) rrt_solver.get_path(p);
+  }
 }

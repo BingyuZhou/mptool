@@ -10,6 +10,7 @@ addons:
     sources:
       - boost-latest
       - ubuntu-toolchain-r-test
+    update: true
     packages:
       - gcc-7
       - g++-7
