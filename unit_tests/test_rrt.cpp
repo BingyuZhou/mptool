@@ -88,5 +88,5 @@ GTEST("test_rrt_sample") {
     }
   }
 
-  SHOULD("FIND_THE_PATH") {}
+  SHOULD("FIND_THE_PATH") { rr }
 }
