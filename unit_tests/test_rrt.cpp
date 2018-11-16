@@ -1,5 +1,7 @@
 #include <GUnit/GTest-Lite.h>
 #include <GUnit/GTest.h>
+#include <algorithm>
+#include <fstream>
 #include "../rrt/rrt.h"
 
 const float EPS = 0.1f;
@@ -19,7 +21,7 @@ GTEST("test_rrt") {
   std::vector<obstacle*> obstacles{obs1, obs2, obs3, obs4};
 
   point_2d initial_point{0.0f, -10.0f};
-  point_2d goal{2.0f, 0.0f};
+  point_2d goal{8.0f, 0.0f};
   int radius = 1;
   int dim = 2;
   rrt<point_2d> rrt_solver(state_space, obstacles, dim, initial_point, goal,
@@ -89,8 +91,17 @@ GTEST("test_rrt") {
   }
 
   SHOULD("FIND_THE_PATH") {
-    bool reached = rrt_solver.run(100);
+    bool reached = rrt_solver.run(100000);
     std::vector<point_2d> p;
-    if (reached) rrt_solver.get_path(p);
+    EXPECT_TRUE(reached);
+    if (reached) {
+      rrt_solver.get_path(p);
+      std::ofstream file;
+      file.open("path.csv");
+      std::for_each(p.begin(), p.end(), [&](point_2d point) {
+        file << point[0] << " " << point[1] << "\n";
+      });
+      file.close();
+    }
   }
 }

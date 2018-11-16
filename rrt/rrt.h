@@ -39,8 +39,8 @@ class rrt {
   const PointType m_goal;
   const int m_radius;
   const float EPSILON = 0.05;  // distance tolerant at goal location
-  rrt_node<PointType> *m_root;
-  std::unordered_map<PointType, rrt_node<PointType>, rrt_node_hash<PointType>>
+
+  std::unordered_map<PointType, rrt_node<PointType> *, rrt_node_hash<PointType>>
       m_node_map;  // have to use map, since we need to modify the node
   rrt_node<PointType> *m_reached;  // reached point near goal
 
@@ -105,7 +105,8 @@ rrt<PointType>::rrt(const std::vector<int> &state_space,
       m_init(initial_point),
       m_goal(goal),
       m_radius(radius) {
-  m_node_map.insert({initial_point, rrt_node<PointType>(initial_point)});
+  rrt_node<PointType> *start = new rrt_node<PointType>(initial_point);
+  m_node_map.insert({initial_point, start});
   std::vector<PointType> point_list{initial_point};
   my_kdtree.construct_tree(point_list);
 };
@@ -185,7 +186,7 @@ bool rrt<PointType>::extend(const PointType &sampled_node) {
   PointType nearest_val = my_kdtree.nearest_neighbor(
       sampled_node);  // find the nearest neighbor in kdtree
 
-  typename std::unordered_map<PointType, rrt_node<PointType>,
+  typename std::unordered_map<PointType, rrt_node<PointType> *,
                               rrt_node_hash<PointType>>::iterator nearest_it =
       m_node_map.find(nearest_val);  // find the equivalent node in rrt
   assert(nearest_it != m_node_map.end());
@@ -193,14 +194,14 @@ bool rrt<PointType>::extend(const PointType &sampled_node) {
   PointType new_node = steer(nearest_it->first, sampled_node);
 
   if (obstacle_free(nearest_it->first, new_node)) {
-    rrt_node<PointType> node(new_node);
-    nearest_it->second.m_children.push_back(&node);
-    node.m_parent = &(nearest_it->second);
+    rrt_node<PointType> *node = new rrt_node<PointType>(new_node);
+    nearest_it->second->m_children.push_back(node);
+    node->m_parent = nearest_it->second;
     my_kdtree.add_node(new_node);
     m_node_map.insert({new_node, node});
 
     if (euclidian_dis(new_node, m_goal) <= EPSILON) {
-      m_reached = &node;
+      m_reached = node;
       return true;
     }
     return false;
@@ -221,7 +222,6 @@ bool rrt<PointType>::extend(const PointType &sampled_node) {
  **/
 template <class PointType>
 bool rrt<PointType>::run(int iteration) {
-  bool goal_reached = false;
   for (int i = 0; i < iteration; ++i) {
     PointType x_rand;
     if (m_dimension == 2) x_rand = random_sample_2d();
@@ -234,9 +234,9 @@ bool rrt<PointType>::run(int iteration) {
 
 template <class PointType>
 void rrt<PointType>::get_path(std::vector<PointType> &path) {
-  rrt_node<PointType> tmp = m_reached;
+  rrt_node<PointType> *tmp = m_reached;
   while (tmp) {
-    path.push_back(tmp.m_value);
-    tmp = tmp.m_parent;
+    path.push_back(tmp->m_value);
+    tmp = tmp->m_parent;
   }
 }

@@ -4,13 +4,20 @@ compiler: gcc
 dist: xenial
 
 # Handle git submodules yourself
-
+git:
+    submodules: false
+# Use sed to replace the SSH URL with the public URL, then initialize submodules
+before_install:
+    - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
+    - git submodule update --init --recursive
+    - eval "${MATRIX_EVAL}"
+    - pip install --user cpp-coveralls
+    - sudo apt get update
 addons:
   apt:
     sources:
       - boost-latest
       - ubuntu-toolchain-r-test
-    update: true
     packages:
       - gcc-7
       - g++-7
@@ -21,14 +28,7 @@ addons:
 env:
   - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
 
-git:
-    submodules: false
-# Use sed to replace the SSH URL with the public URL, then initialize submodules
-before_install:
-    - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
-    - git submodule update --init --recursive
-    - eval "${MATRIX_EVAL}"
-    - pip install --user cpp-coveralls
+
 
 script:
   - mkdir build
