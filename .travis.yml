@@ -16,7 +16,6 @@ before_install:
 addons:
   apt:
     sources:
-      - boost-latest
       - ubuntu-toolchain-r-test
     packages:
       - gcc-7
