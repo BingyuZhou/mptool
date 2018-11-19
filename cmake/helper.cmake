@@ -5,8 +5,9 @@ function(add_gunit_test SOURCE_FILE_NAME)
 
     add_executable(${TEST_EXECUTABLE_NAME} ${SOURCE_FILE_NAME})
 
+    target_compile_options(${TEST_EXECUTABLE_NAME} PRIVATE --coverage)
     target_link_libraries(${TEST_EXECUTABLE_NAME}
-        ${ARGN} GUnit gcov)
+        ${ARGN} GUnit gcov --coverage)
 
     install(TARGETS ${TEST_EXECUTABLE_NAME} DESTINATION test)
     add_test(NAME ${TEST_EXECUTABLE_NAME} COMMAND ${TEST_EXECUTABLE_NAME})
