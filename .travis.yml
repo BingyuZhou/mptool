@@ -32,7 +32,7 @@ env:
 script:
   - mkdir build
   - cd build
-  - cmake .. -DCOVERALLS=ON && make -j12 && ctest -j12
+  - cmake -DCOVERALLS=ON .. && make -j12 && ctest -j12
 
 after_success:
   - coveralls --root . -E ".*CMakeFiles.*" 
