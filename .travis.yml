@@ -32,7 +32,8 @@ env:
 script:
   - mkdir build
   - cd build
-  - cmake -DCOVERAGE=ON .. && make -j12 && ctest -j12
+  - cmake .. && make -j12 && ctest -j12
+  - cd ..
 
 after_success:
-  - coveralls --root . -E ".*CMakeFiles.*" 
+  - coveralls --exclude lib --exclude tests --gcov-options '\-lp'
