@@ -9,16 +9,16 @@ typedef std::array<float, 2> point_2d;
 
 GTEST("test_rrt") {
   std::vector<int> state_space{0, 10, -10, 10};
-  obstacle* obs1 =
+  obstacle *obs1 =
       new obstacle(std::make_pair(1.0f, 9.0f), std::make_pair(3.0f, 7.0f));
-  obstacle* obs2 =
+  obstacle *obs2 =
       new obstacle(std::make_pair(9.0f, 3.0f), std::make_pair(10.0f, -10.0f));
-  obstacle* obs3 =
+  obstacle *obs3 =
       new obstacle(std::make_pair(2.0f, 0.0f), std::make_pair(4.0f, -3.0f));
-  obstacle* obs4 =
+  obstacle *obs4 =
       new obstacle(std::make_pair(8.0f, 9.0f), std::make_pair(9.0f, 7.0f));
 
-  std::vector<obstacle*> obstacles{obs1, obs2, obs3, obs4};
+  std::vector<obstacle *> obstacles{obs1, obs2, obs3, obs4};
 
   point_2d initial_point{5.0f, -9.0f};
   point_2d goal{0.0f, 10.0f};
@@ -76,13 +76,13 @@ GTEST("test_rrt") {
     // std::cout << sample[0] << " " << sample[1] << std::endl;
     bool goal_reached = rrt_solver.extend(sample);
 
-    Node<point_2d>* root = rrt_solver.my_kdtree.get_root();
+    Node<point_2d> *root = rrt_solver.my_kdtree.get_root();
 
-    std::queue<Node<point_2d>*> q;
+    std::queue<Node<point_2d> *> q;
     q.push(root);
 
     while (!q.empty()) {
-      Node<point_2d>* node = q.front();
+      Node<point_2d> *node = q.front();
       q.pop();
       std::cout << node->m_value[0] << " " << node->m_value[1] << std::endl;
       if (node->m_left) q.push(node->m_left);
@@ -90,11 +90,11 @@ GTEST("test_rrt") {
     }
   }
 
-  SHOULD("FIND_THE_PATH") {
+  SHOULD("FIND_THE_PATH_AND_PRINT_TREE") {
     bool reached = rrt_solver.run(100000);
-    std::vector<point_2d> p;
     EXPECT_TRUE(reached);
     if (reached) {
+      std::vector<point_2d> p;
       rrt_solver.get_path(p);
       std::ofstream file;
       file.open("path.csv");
@@ -103,5 +103,6 @@ GTEST("test_rrt") {
       });
       file.close();
     }
+    rrt_solver.output_rrt_json();
   }
 }

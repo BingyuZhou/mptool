@@ -5,6 +5,8 @@
  **/
 
 #include <boost/functional/hash.hpp>
+#include <fstream>
+#include <json.hpp>
 #include <unordered_map>
 #include <vector>
 #include "kdtree.h"
@@ -59,6 +61,7 @@ class rrt {
 
   bool run(int iteration);
   void get_path(std::vector<PointType> &path);
+  void output_rrt_json();
 };
 
 //------------------------DEFINATION--------------------------
@@ -216,6 +219,7 @@ bool rrt<PointType>::extend(const PointType &sampled_node) {
     }
     return false;
   }
+  return false;
 }
 
 /**
@@ -247,6 +251,26 @@ void rrt<PointType>::get_path(std::vector<PointType> &path) {
   rrt_node<PointType> *tmp = m_reached;
   while (tmp) {
     path.push_back(tmp->m_value);
+    std::cout << tmp->m_value[0] << " " << tmp->m_value[1] << std::endl;
     tmp = tmp->m_parent;
   }
+}
+
+template <class PointType>
+void rrt<PointType>::output_rrt_json() {
+  using json = nlohmann::json;
+  json j;
+  std::ofstream o("rrt.json");
+  int count = 0;
+  for (auto tmp = m_node_map.cbegin(); tmp != m_node_map.cend(); ++tmp) {
+    j["node" + std::to_string(count)]["value"] = tmp->first;
+    if (tmp->second->m_parent)
+      j["node" + std::to_string(count)]["parent"] =
+          tmp->second->m_parent->m_value;
+    else
+      j["node" + std::to_string(count)]["parent"] = NULL;
+    ++count;
+  }
+  o << std::setw(4) << j << std::endl;
+  o.close();
 }
