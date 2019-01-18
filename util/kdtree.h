@@ -110,6 +110,92 @@ public:
     }
   }
 
+  std::vector<PointType> near_radius(PointType node_new, float radius)
+  {
+    // Find near nodes in kd tree around node_new within radius
+    // Generalization of nearest neighbour finding probelm
+
+    std::vector<PointType> near_nodes;
+
+    std::vector<Node<PointType> *> min_heap{m_root};
+    auto comp = [](Node<PointType> *n1, Node<PointType> *n2) {
+      return n1->m_distance > n2->m_distance;
+    };
+    // Check if node_new and current_node are at different side of current_node->parent
+    auto is_parent_middle = [&](Node<PointType> *current_node) {
+      return (node_new[current_node->m_parent->m_split_axis] - current_node->m_parent->m_value[current_node->m_parent->m_split_axis]) *
+                         (current_node->m_parent->m_value[current_node->m_parent->m_split_axis] - current_node->m_value[current_node->m_parent->m_split_axis]) >
+                     0
+                 ? true
+                 : false;
+    };
+    auto distance_square_to_parent_split_axis = [&](Node<PointType> *current_node) {
+      int dis = current_node->m_parent->m_value[current_node->m_parent->m_split_axis] -
+                node_new[current_node->m_parent->m_split_axis];
+      return dis * dis;
+    };
+
+    while (!min_heap.empty())
+    {
+      std::pop_heap(min_heap.begin(), min_heap.end(), comp);
+      Node<PointType> *current_node = min_heap.back();
+      min_heap.pop_back();
+
+      if (euclidian_dis(current_node->m_value, node_new) < radius)
+      {
+        near_nodes.push_back(current_node->m_value);
+      }
+
+      // prune the useless branch
+      if (current_node->m_parent &&
+          radius * radius < distance_square_to_parent_split_axis() &&
+          is_parent_middle())
+        continue;
+
+      // hyperplane intersects with hypersphere or not
+      int dis_to_hyperplane =
+          std::abs(current_node->m_value[current_node->m_split_axis] -
+                   node_new[current_node->m_split_axis]);
+
+      // If not intersected, only consider one branch
+      if (radius <= dis_to_hyperplane)
+      {
+        if (node_new[current_node->m_split_axis] <
+            current_node->m_value[current_node->m_split_axis])
+        {
+          if (current_node->m_left)
+          {
+            min_heap.push_back(current_node->m_left);
+            std::push_heap(min_heap.begin(), min_heap.end(), comp);
+          }
+        }
+        else
+        {
+          if (current_node->m_right)
+          {
+            min_heap.push_back(current_node->m_right);
+            std::push_heap(min_heap.begin(), min_heap.end(), comp);
+          }
+        }
+      }
+      // If intersected, consider both branches
+      else
+      {
+        if (current_node->m_left)
+        {
+          min_heap.push_back(current_node->m_left);
+          std::push_heap(min_heap.begin(), min_heap.end(), comp);
+        }
+        if (current_node->m_right)
+        {
+          min_heap.push_back(current_node->m_right);
+          std::push_heap(min_heap.begin(), min_heap.end(), comp);
+        }
+      }
+    }
+    return near_nodes;
+  };
+
   PointType nearest_neighbor(const PointType &node_new)
   {
     // Find the nearest neighbor of the node_new in the kd tree O(logN)
