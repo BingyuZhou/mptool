@@ -7,8 +7,7 @@
 const float EPS = 0.1f;
 typedef std::array<float, 2> point_2d;
 
-GTEST("test_rrt")
-{
+GTEST("test_rrt") {
   std::vector<int> state_space{0, 10, -10, 10};
   obstacle *obs1 =
       new obstacle(std::make_pair(1.0f, 9.0f), std::make_pair(3.0f, 7.0f));
@@ -28,8 +27,7 @@ GTEST("test_rrt")
   rrt<point_2d> rrt_solver(state_space, obstacles, dim, initial_point, goal,
                            radius);
 
-  SHOULD("sample_point_in_state_space")
-  {
+  SHOULD("sample_point_in_state_space") {
     point_2d sample = rrt_solver.random_sample_2d();
     // std::cout << sample[0] << " " << sample[1] << std::endl;
     EXPECT_GE(sample[0], 0);
@@ -43,8 +41,7 @@ GTEST("test_rrt")
     EXPECT_FALSE(inside_obstacle_area<point_2d>(obs4, sample));
   }
 
-  SHOULD("test_steer_functionality")
-  {
+  SHOULD("test_steer_functionality") {
     point_2d sample = rrt_solver.random_sample_2d();
     point_2d nearest{5, 5};
     point_2d new_node = rrt_solver.steer(nearest, sample);
@@ -53,8 +50,7 @@ GTEST("test_rrt")
     EXPECT_LE(euclidian_dis(new_node, nearest), radius + EPS);
   }
 
-  SHOULD("COLLISION_CHECK")
-  {
+  SHOULD("COLLISION_CHECK") {
     point_2d start{0, 1};
     point_2d end{10, 1};
     bool res = rrt_solver.obstacle_free(start, end);
@@ -75,8 +71,7 @@ GTEST("test_rrt")
     res = rrt_solver.obstacle_free(start, end);
     EXPECT_TRUE(res);
   }
-  SHOULD("TEST_EXTEND_GRAPH")
-  {
+  SHOULD("TEST_EXTEND_GRAPH") {
     point_2d sample = rrt_solver.random_sample_2d();
     // std::cout << sample[0] << " " << sample[1] << std::endl;
     bool goal_reached = rrt_solver.extend(sample);
@@ -86,24 +81,19 @@ GTEST("test_rrt")
     std::queue<Node<point_2d> *> q;
     q.push(root);
 
-    while (!q.empty())
-    {
+    while (!q.empty()) {
       Node<point_2d> *node = q.front();
       q.pop();
-      std::cout << node->m_value[0] << " " << node->m_value[1] << std::endl;
-      if (node->m_left)
-        q.push(node->m_left);
-      if (node->m_right)
-        q.push(node->m_right);
+      // std::cout << node->m_value[0] << " " << node->m_value[1] << std::endl;
+      if (node->m_left) q.push(node->m_left);
+      if (node->m_right) q.push(node->m_right);
     }
   }
 
-  SHOULD("FIND_THE_PATH_AND_PRINT_TREE")
-  {
+  SHOULD("FIND_THE_PATH_AND_PRINT_TREE") {
     bool reached = rrt_solver.run(100000);
     EXPECT_TRUE(reached);
-    if (reached)
-    {
+    if (reached) {
       std::vector<point_2d> p;
       rrt_solver.get_path(p);
       std::ofstream file;

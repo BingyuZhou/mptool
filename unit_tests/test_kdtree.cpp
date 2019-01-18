@@ -1,14 +1,17 @@
-#include <GUnit/GTest-Lite.h>
-#include <GUnit/GTest.h>
-#include <tuple>
 #include "../util/kdtree.h"
 
-typedef std::array<int, 2> point_2d;
+#include <GUnit/GTest-Lite.h>
+#include <GUnit/GTest.h>
+#include <gtest/gtest.h>
+#include <algorithm>
+#include <tuple>
+
+using namespace std;
+typedef array<int, 2> point_2d;
 
 GTEST("test_kd_tree_2d") {
   KDtree<point_2d> my_kdtree;
-  std::vector<point_2d> point_list{{2, 3}, {5, 4}, {9, 6},
-                                   {4, 7}, {8, 1}, {7, 2}};
+  vector<point_2d> point_list{{2, 3}, {5, 4}, {9, 6}, {4, 7}, {8, 1}, {7, 2}};
 
   SHOULD("return_correct_tree_structure") {
     int depth = 0;
@@ -58,5 +61,19 @@ GTEST("test_kd_tree_2d") {
     my_kdtree.add_node(node);
     EXPECT_EQ(my_kdtree.get_root()->m_left->m_left->m_right->m_left->m_value[0],
               node[0]);
+  }
+
+  SHOULD("FIND_ALL_NEARS") {
+    my_kdtree.construct_tree(point_list);
+    EXPECT_EQ(my_kdtree.get_root()->m_value[0], 7);
+    point_2d node{7, 4};
+
+    float radius = 4.0f;
+    vector<point_2d> near = my_kdtree.near_radius(node, radius);
+
+    // EXPECT_THAT(near[0], ElementsAre(7, 2));
+
+    for_each(near.begin(), near.end(),
+             [](point_2d s) { cout << s[0] << ' ' << s[1] << endl; });
   }
 }
