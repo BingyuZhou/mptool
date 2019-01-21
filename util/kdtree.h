@@ -83,11 +83,15 @@ class KDtree {
 
   Node<PointType> *get_root() { return m_root; };
 
+  int32_t m_size{0};
+
   void construct_tree(typename std::vector<PointType> &point_list) {
     m_root = build_tree(point_list.begin(), point_list.size(), 0);
+    m_size += point_list.size();
   };
 
   void add_node(const PointType &node_add) {
+    ++m_size;
     int dimention = node_add.size();
     if (m_root == NULL)
       m_root = new Node<PointType>(node_add);

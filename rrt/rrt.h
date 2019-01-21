@@ -19,14 +19,20 @@
 //------------------------DECLARITION------------------------
 template <class PointType>
 class rrt_node {
+  float m_cost;
+
  public:
   rrt_node *m_parent;
   std::vector<rrt_node *> m_children;
   PointType m_value;
+
   rrt_node(const PointType &v);
   rrt_node(rrt_node *parent, std::vector<rrt_node *> children);
   rrt_node(rrt_node *parent, rrt_node *child);
   bool operator==(const rrt_node &obj) const;
+
+  void set_cost(const float &);
+  float get_cost();
 };
 
 template <class PointType>
@@ -40,13 +46,14 @@ template <class PointType>
 class rrt {
   const std::vector<int> m_state_space_boundary;
   const std::vector<obstacle *> m_obstacles;
-  const int m_dimension;
+
+ protected:
   const PointType m_init;
   const PointType m_goal;
-  const int m_radius;
-  const float EPSILON = 0.05;  // distance tolerant at goal location
-  const float m_bias = 0.1;    // bias of goal distribution
-
+  const int m_dimension;
+  const int m_steer_radius;
+  const float EPSILON = 0.05f;  // distance tolerant at goal location
+  const float m_bias = 0.1f;    // bias of goal distribution
   std::unordered_map<PointType, rrt_node<PointType> *, rrt_node_hash<PointType>>
       m_node_map;  // have to use map, since we need to modify the node
   rrt_node<PointType> *m_reached;  // reached point near goal
@@ -72,18 +79,28 @@ class rrt {
 
 template <class PointType>
 rrt_node<PointType>::rrt_node(const PointType &v)
-    : m_parent(NULL), m_value(v){};
+    : m_parent(NULL), m_value(v), m_cost(0.0f){};
 
 template <class PointType>
 rrt_node<PointType>::rrt_node(rrt_node *parent,
                               std::vector<rrt_node *> children)
-    : m_parent(parent), m_children(children){};
+    : m_parent(parent), m_children(children), m_cost(0.0f){};
 
 template <class PointType>
 rrt_node<PointType>::rrt_node(rrt_node *parent, rrt_node *child)
-    : m_parent(parent) {
+    : m_parent(parent), m_cost(0.0f) {
   m_children.push_back(child);
 };
+
+template <class PointType>
+void rrt_node<PointType>::set_cost(const float &cost) {
+  m_cost = cost;
+}
+
+template <class PointType>
+float rrt_node<PointType>::get_cost() {
+  return m_cost;
+}
 
 template <class PointType>
 bool rrt_node<PointType>::operator==(const rrt_node &obj) const {
@@ -105,7 +122,7 @@ rrt<PointType>::rrt(const std::vector<int> &state_space,
       m_dimension(dim),
       m_init(initial_point),
       m_goal(goal),
-      m_radius(radius) {
+      m_steer_radius(radius) {
   rrt_node<PointType> *start = new rrt_node<PointType>(initial_point);
   m_node_map.insert({initial_point, start});
   std::vector<PointType> point_list{initial_point};
@@ -181,11 +198,12 @@ PointType rrt<PointType>::steer(const PointType &nearest,
                                 const PointType &sample) {
   PointType new_node;
   float dis = euclidian_dis(nearest, sample);
-  if (dis <= m_radius)
+  if (dis <= m_steer_radius)
     new_node = sample;
   else {
     for (int i = sample.size() - 1; i >= 0; --i) {
-      new_node[i] = (sample[i] - nearest[i]) / dis * m_radius + nearest[i];
+      new_node[i] =
+          (sample[i] - nearest[i]) / dis * m_steer_radius + nearest[i];
     }
   }
   return new_node;
@@ -214,7 +232,6 @@ bool rrt<PointType>::extend(const PointType &sampled_node) {
       m_reached = node;
       return true;
     }
-    return false;
   }
   return false;
 }
