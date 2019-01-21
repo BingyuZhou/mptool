@@ -13,6 +13,7 @@
 #include <fstream>
 #include <json.hpp>
 #include <random>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -72,7 +73,7 @@ class rrt {
 
   bool run(int iteration);
   void get_path(std::vector<PointType> &path);
-  void output_rrt_json();
+  void output_rrt_json(const std::string &);
 };
 
 //------------------------DEFINATION--------------------------
@@ -271,10 +272,10 @@ void rrt<PointType>::get_path(std::vector<PointType> &path) {
 }
 
 template <class PointType>
-void rrt<PointType>::output_rrt_json() {
+void rrt<PointType>::output_rrt_json(const std::string &filename) {
   using json = nlohmann::json;
   json j;
-  std::ofstream o("rrt.json");
+  std::ofstream o(filename + ".json");
   int count = 0;
   for (auto tmp = m_node_map.cbegin(); tmp != m_node_map.cend(); ++tmp) {
     j["node" + std::to_string(count)]["value"] = tmp->first;

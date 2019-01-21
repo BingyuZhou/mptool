@@ -20,6 +20,19 @@ int main() {
   point_2d goal{0.0f, 10.0f};
   int radius = 1;
   int dim = 2;
-  rrt_star<point_2d> rrt_solver(state_space, obstacles, dim, initial_point,
-                                goal, radius);
+  rrt_star<point_2d> rrt_star_solver(state_space, obstacles, dim, initial_point,
+                                     goal, radius);
+  bool reached = rrt_star_solver.run(1000);
+
+  if (reached) {
+    std::vector<point_2d> p;
+    rrt_star_solver.get_path(p);
+    std::ofstream file;
+    file.open("path_star.csv");
+    std::for_each(p.begin(), p.end(), [&](point_2d point) {
+      file << point[0] << " " << point[1] << "\n";
+    });
+    file.close();
+  }
+  rrt_star_solver.output_rrt_json("rrt_star");
 }

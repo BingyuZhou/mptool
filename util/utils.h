@@ -25,4 +25,5 @@ bool inside_obstacle_area(const obstacle *obs, T point) {
     return false;
 }
 
-float Lebesgue_measure() { return 10.0f; }
+// TODO:
+float Lebesgue_measure() { return 100.0f; }

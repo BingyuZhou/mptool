@@ -103,6 +103,6 @@ GTEST("test_rrt") {
       });
       file.close();
     }
-    rrt_solver.output_rrt_json();
+    rrt_solver.output_rrt_json("rrt");
   }
 }
