@@ -75,7 +75,8 @@ GTEST("test_kd_tree_2d") {
 
     node = {10, 6};
     auto nearest = my_kdtree.nearest_neighbor(node);
-    cout << nearest[0] << " " << nearest[1] << endl;
+    EXPECT_EQ(nearest[0], 9);
+    EXPECT_EQ(nearest[1], 6);
   }
   SHOULD("FIND_ALL_NEARS") {
     my_kdtree.construct_tree(point_list);
