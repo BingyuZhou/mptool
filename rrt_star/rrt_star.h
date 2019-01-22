@@ -69,7 +69,7 @@ bool rrt_star<PointType>::extend(const PointType &sample_node) {
     float radius = min(static_cast<float>(rrt_p::m_steer_radius),
                        pow(gamma / eta * log(size_tree) / size_tree,
                            1.0f / rrt_p::m_dimension));
-    cout << "radius for near neighbour:" << radius << endl;
+    // cout << "radius for near neighbour:" << radius << endl;
     auto near_nodes = rrt_p::my_kdtree.near_radius(new_node, radius);
 
     for (auto near : near_nodes) {

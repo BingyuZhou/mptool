@@ -62,7 +62,21 @@ GTEST("test_kd_tree_2d") {
     EXPECT_EQ(my_kdtree.get_root()->m_left->m_left->m_right->m_left->m_value[0],
               node[0]);
   }
+  SHOULD("FIND_NEARREAST_AFTER_ADD_NODE") {
+    point_list = {{2, 3}};
+    my_kdtree.construct_tree(point_list);
+    point_2d node{9, 7};
+    my_kdtree.add_node(node);
+    my_kdtree.add_node({4, 7});
+    my_kdtree.add_node({5, 4});
+    my_kdtree.add_node({7, 2});
+    my_kdtree.add_node({8, 1});
+    my_kdtree.add_node({9, 6});
 
+    node = {10, 6};
+    auto nearest = my_kdtree.nearest_neighbor(node);
+    cout << nearest[0] << " " << nearest[1] << endl;
+  }
   SHOULD("FIND_ALL_NEARS") {
     my_kdtree.construct_tree(point_list);
     EXPECT_EQ(my_kdtree.get_root()->m_value[0], 7);

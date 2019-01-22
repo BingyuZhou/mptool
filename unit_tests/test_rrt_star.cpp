@@ -18,7 +18,7 @@ int main() {
 
   point_2d initial_point{5.0f, -9.0f};
   point_2d goal{0.0f, 10.0f};
-  int radius = 1;
+  int radius = 3;
   int dim = 2;
   rrt_star<point_2d> rrt_star_solver(state_space, obstacles, dim, initial_point,
                                      goal, radius);

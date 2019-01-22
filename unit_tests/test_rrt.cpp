@@ -91,7 +91,7 @@ GTEST("test_rrt") {
   }
 
   SHOULD("FIND_THE_PATH_AND_PRINT_TREE") {
-    bool reached = rrt_solver.run(100000);
+    bool reached = rrt_solver.run(1000);
     EXPECT_TRUE(reached);
     if (reached) {
       std::vector<point_2d> p;

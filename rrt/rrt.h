@@ -181,8 +181,8 @@ bool rrt<PointType>::obstacle_free(const PointType start,
   std::default_random_engine generator;
   std::uniform_real_distribution<float> distribution(0, dis);
 
-  // Sampling check for 10 samples, O(10*N) where N is the number of obstacles
-  for (int i = 0; i < 10; ++i) {
+  // Sampling check for 50 samples, O(10*N) where N is the number of obstacles
+  for (int i = 0; i < 50; ++i) {
     PointType point;
     float sample_dis = distribution(generator);
     point[0] = start[0] + sample_dis / dis * (end[0] - start[0]);
@@ -251,14 +251,18 @@ bool rrt<PointType>::extend(const PointType &sampled_node) {
  **/
 template <class PointType>
 bool rrt<PointType>::run(int iteration) {
+  bool find_path = false;
   for (int i = 0; i < iteration; ++i) {
     PointType x_rand;
     if (m_dimension == 2) x_rand = random_sample_2d();
     if (m_dimension == 3) x_rand = random_sample_3d();
 
-    if (extend(x_rand)) return true;  // reach the goal location
+    if (extend(x_rand)) find_path = true;  // reach the goal location
+
+    if (i == 10 || i == 11 || i == 12 || i == 13)
+      output_rrt_json(std::to_string(i));
   }
-  return false;  // run out of iteration with failing to reach goal
+  return find_path;  // run out of iteration with failing to reach goal
 }
 
 template <class PointType>
@@ -279,6 +283,7 @@ void rrt<PointType>::output_rrt_json(const std::string &filename) {
   int count = 0;
   for (auto tmp = m_node_map.cbegin(); tmp != m_node_map.cend(); ++tmp) {
     j["node" + std::to_string(count)]["value"] = tmp->first;
+    j["node" + std::to_string(count)]["cost"] = tmp->second->get_cost();
     if (tmp->second->m_parent)
       j["node" + std::to_string(count)]["parent"] =
           tmp->second->m_parent->m_value;

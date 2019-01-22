@@ -10,10 +10,9 @@
 #include <vector>
 
 template <class PointType>
-class Node {
- public:
+struct Node {
   Node *m_left, *m_right, *m_parent;
-  int m_distance;
+  float m_distance;
   int m_split_axis;
   PointType m_value;
   Node(){};
@@ -203,7 +202,7 @@ class KDtree {
     };
 
     std::vector<Node<PointType> *> min_heap{m_root};
-    int shortest_distance = euclidian_dis(node_new, m_root->m_value);
+    float shortest_distance = euclidian_dis(node_new, m_root->m_value);
     m_root->m_distance = shortest_distance;
 
     while (!min_heap.empty()) {
