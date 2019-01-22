@@ -61,9 +61,10 @@ bool rrt_star<PointType>::extend(const PointType &sample_node) {
     // d: dimension, eg. 2-D, 3-D
     // eta: volum of unit radius ball
     // n: size of current tree
-    // TODO:
-    float gamma = pow(2, rrt_p::m_dimension) * (1 + 1.0f / rrt_p::m_dimension) *
-                  Lebesgue_measure();
+
+    float gamma =
+        pow(2, rrt_p::m_dimension) * (1 + 1.0f / rrt_p::m_dimension) *
+        Lebesgue_measure(rrt_p::m_state_space_boundary, rrt_p::m_obstacles);
     float eta = M_PI;
     float size_tree = rrt_p::my_kdtree.m_size;
     float radius = min(static_cast<float>(rrt_p::m_steer_radius),

@@ -25,5 +25,15 @@ bool inside_obstacle_area(const obstacle *obs, T point) {
     return false;
 }
 
-// TODO:
-float Lebesgue_measure() { return 100.0f; }
+float Lebesgue_measure(const std::vector<int> &state_space,
+                       const std::vector<obstacle *> &obses) {
+  // For E(2) spaces, return the free area size
+  float all_area =
+      (state_space[1] - state_space[0]) * (state_space[3] - state_space[2]);
+  float obs_area = 0.0f;
+  for (auto obs : obses) {
+    obs_area += (obs->bottom_right.first - obs->top_left.first) *
+                (obs->top_left.second - obs->bottom_right.second);
+  }
+  return all_area - obs_area;
+}

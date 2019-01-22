@@ -45,10 +45,9 @@ struct rrt_node_hash {
 
 template <class PointType>
 class rrt {
+ protected:
   const std::vector<int> m_state_space_boundary;
   const std::vector<obstacle *> m_obstacles;
-
- protected:
   const PointType m_init;
   const PointType m_goal;
   const int m_dimension;
