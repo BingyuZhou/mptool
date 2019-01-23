@@ -202,5 +202,8 @@ dmypy.json
 pyvenv.cfg
 pip-selfcheck.json
 
+# html
+html/
+
 
 # End of https://www.gitignore.io/api/git,c++,code,linux,python
