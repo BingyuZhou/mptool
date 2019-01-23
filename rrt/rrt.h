@@ -18,6 +18,10 @@
 #include <vector>
 
 //------------------------DECLARITION------------------------
+
+/**
+ * RRT_NODE structure
+ */
 template <class PointType>
 class rrt_node {
   float m_cost;
@@ -25,7 +29,7 @@ class rrt_node {
  public:
   rrt_node *m_parent;
   std::vector<rrt_node *> m_children;
-  PointType m_value;
+  PointType m_value;  ///< coordinates (x,y) or (x,y,z)
 
   rrt_node(const PointType &v);
   rrt_node(rrt_node *parent, std::vector<rrt_node *> children);
@@ -43,27 +47,30 @@ struct rrt_node_hash {
   }
 };
 
+/**
+ * RRT planner
+ */
 template <class PointType>
 class rrt {
  protected:
-  const std::vector<int> m_state_space_boundary;
+  const std::vector<int> m_state_space_boundary;  ///< state space boundary
   const std::vector<obstacle *> m_obstacles;
   const PointType m_init;
   const PointType m_goal;
-  const int m_dimension;
-  const int m_steer_radius;
-  const float EPSILON = 0.05f;  // distance tolerant at goal location
-  const float m_bias = 0.1f;    // bias of goal distribution
+  const int m_dimension;        ///< dimenstion of planning problem: 2D or 3D
+  const int m_steer_radius;     ///< steer range of the robot
+  const float EPSILON = 0.05f;  ///< distance tolerant at goal location
+  const float m_bias = 0.1f;    ///< bias of goal distribution
   std::unordered_map<PointType, rrt_node<PointType> *, rrt_node_hash<PointType>>
-      m_node_map;  // have to use map, since we need to modify the node
-  rrt_node<PointType> *m_reached;  // reached point near goal
+      m_node_map;  ///< have to use map, since we need to modify the node
+  rrt_node<PointType> *m_reached;  ///< reached point near goal
 
  public:
   rrt(const std::vector<int> &state_space,
       const std::vector<obstacle *> &obstacles, const int &dim,
       const PointType &initial_point, const PointType &goal, const int &radius);
   void set_bias(float bias);
-  KDtree<PointType> my_kdtree;
+  KDtree<PointType> my_kdtree;  ///< kd tree used for near neighbour finding
   PointType random_sample_2d();
   PointType random_sample_3d();
   bool obstacle_free(const PointType start, const PointType &end);
@@ -92,16 +99,25 @@ rrt_node<PointType>::rrt_node(rrt_node *parent, rrt_node *child)
   m_children.push_back(child);
 };
 
+/**
+ * Set the cost of node
+ */
 template <class PointType>
 void rrt_node<PointType>::set_cost(const float &cost) {
   m_cost = cost;
 }
 
+/**
+ * Get the cost of node
+ */
 template <class PointType>
 float rrt_node<PointType>::get_cost() {
   return m_cost;
 }
 
+/**
+ * Compare two nodes
+ */
 template <class PointType>
 bool rrt_node<PointType>::operator==(const rrt_node &obj) const {
   if (obj.m_value == m_value)
@@ -129,11 +145,17 @@ rrt<PointType>::rrt(const std::vector<int> &state_space,
   my_kdtree.construct_tree(point_list);
 };
 
+/**
+ * Set the goal bias
+ */
 template <class PointType>
 void rrt<PointType>::set_bias(float bias) {
   m_bias = bias;
 }
 
+/**
+ * Random sampling of 2D points
+ */
 template <class PointType>
 PointType rrt<PointType>::random_sample_2d() {
   if (rand() % 10 / 10.0f < m_bias)
@@ -169,9 +191,15 @@ PointType rrt<PointType>::random_sample_2d() {
   }
 }
 
+/**
+ * Ramdom sampling of 3D points
+ */
 template <class PointType>
 PointType rrt<PointType>::random_sample_3d(){};
 
+/**
+ * Check the line between two nodes whether collision free
+ */
 template <class PointType>
 bool rrt<PointType>::obstacle_free(const PointType start,
                                    const PointType &end) {
@@ -193,6 +221,9 @@ bool rrt<PointType>::obstacle_free(const PointType start,
   return true;
 };
 
+/**
+ * Steer the sampled node closer to nearest node
+ */
 template <class PointType>
 PointType rrt<PointType>::steer(const PointType &nearest,
                                 const PointType &sample) {
@@ -209,6 +240,11 @@ PointType rrt<PointType>::steer(const PointType &nearest,
   return new_node;
 };
 
+/**
+ * Main function for RRT planner
+ *
+ * Sample node, check feasibility, add to tree
+ */
 template <class PointType>
 bool rrt<PointType>::extend(const PointType &sampled_node) {
   PointType nearest_val = my_kdtree.nearest_neighbor(
@@ -237,8 +273,11 @@ bool rrt<PointType>::extend(const PointType &sampled_node) {
 }
 
 /**
- * RRT
+ * RRT Run interface
+ *
  * rrt initializes with start state
+ *
+ * \code
  * for i=1:N:
  *    x_rand = sample(i)
  *    x_nearest = kd_tree.NN(x_rand)
@@ -247,7 +286,8 @@ bool rrt<PointType>::extend(const PointType &sampled_node) {
  *        kd_tree.add(x_new)
  *        rrt.add(x_new)
  *        check if x_new at goal location
- **/
+ * \endcode
+ */
 template <class PointType>
 bool rrt<PointType>::run(int iteration) {
   bool find_path = false;
@@ -264,6 +304,9 @@ bool rrt<PointType>::run(int iteration) {
   return find_path;  // run out of iteration with failing to reach goal
 }
 
+/**
+ * Get the path from start to goal
+ */
 template <class PointType>
 void rrt<PointType>::get_path(std::vector<PointType> &path) {
   rrt_node<PointType> *tmp = m_reached;
@@ -274,6 +317,9 @@ void rrt<PointType>::get_path(std::vector<PointType> &path) {
   }
 }
 
+/**
+ * Get the rrt tree in json
+ */
 template <class PointType>
 void rrt<PointType>::output_rrt_json(const std::string &filename) {
   using json = nlohmann::json;
