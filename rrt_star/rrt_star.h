@@ -1,15 +1,13 @@
 #include "rrt.h"
 
 #include <cmath>
-/*******************************************************
- * *****************RRT* *******************************
- * asymptotically optimal path
- * *****************************************************/
+
 using namespace std;
 
-/* ------------------------------------------
- * ----------------rrt_star------------------
- * ------------------------------------------*/
+/**
+ * RRT* \n
+ * asymptotically optimal path
+ */
 template <class PointType>
 class rrt_star : public rrt<PointType> {
   typedef rrt<PointType> rrt_p;
@@ -18,6 +16,7 @@ class rrt_star : public rrt<PointType> {
   using rrt_p::extend;
   using rrt_p::rrt;
 
+  /// main function for rrt*
   bool extend(const PointType &sampled_node);
 };
 

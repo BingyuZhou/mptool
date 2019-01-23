@@ -9,11 +9,14 @@
 #include <algorithm>
 #include <vector>
 
+/**
+ * KD tree node
+ */
 template <class PointType>
 struct Node {
   Node *m_left, *m_right, *m_parent;
-  float m_distance;
-  int m_split_axis;
+  float m_distance;  ///< distance to a node
+  int m_split_axis;  ///< splitting axis
   PointType m_value;
   Node(){};
   Node(const PointType &value, Node *left = NULL, Node *right = NULL,
@@ -22,6 +25,12 @@ struct Node {
   ~Node(){};
 };
 
+/**
+ * KD tree
+ *
+ * Space segmentation tree structure for faster RangeFinding and
+ * NearestNeighbours tasks
+ */
 template <class PointType>
 class KDtree {
   Node<PointType> *m_root;
@@ -82,13 +91,15 @@ class KDtree {
 
   Node<PointType> *get_root() { return m_root; };
 
-  int32_t m_size{0};
+  int32_t m_size{0};  ///< number of nodes in the tree
 
+  /// construct kd tree from a list of points
   void construct_tree(typename std::vector<PointType> &point_list) {
     m_root = build_tree(point_list.begin(), point_list.size(), 0);
     m_size += point_list.size();
   };
 
+  /// add node to kd tree
   void add_node(const PointType &node_add) {
     ++m_size;
     int dimention = node_add.size();
@@ -119,10 +130,7 @@ class KDtree {
     }
   }
 
-  /* ----------------------------------------------------------------
-   * ------------ near_radius ------------------------------------
-   *  Find near nodes in kd tree around node_new within radius
-   * --------------------------------------------------------------*/
+  /// Find near nodes in kd tree around node_new within radius
   std::vector<PointType> near_radius(const PointType &node_new,
                                      const float &radius) {
     // Generalization of nearest neighbour finding probelm
@@ -191,10 +199,7 @@ class KDtree {
     return near_nodes;
   };
 
-  /* ----------------------------------------------------------------
-   * ------------nearest_neighbor------------------------------------
-   * Find the nearest neighbor of the node_new in the kd tree O(logN)
-   * --------------------------------------------------------------*/
+  /// Find the nearest neighbor of the node_new in the kd tree O(logN)
   PointType nearest_neighbor(const PointType &node_new) {
     PointType nearest = m_root->m_value;
     auto comp = [](Node<PointType> *n1, Node<PointType> *n2) {
