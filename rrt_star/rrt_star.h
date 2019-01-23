@@ -6,28 +6,6 @@
  * asymptotically optimal path
  * *****************************************************/
 using namespace std;
-/* ------------------------------------------
- * -------------RRT star node----------------
- * -----------------------------------------*/
-template <class PointType>
-class rrt_star_node : public rrt_node<PointType> {
-  float m_cost = 0.0f;
-
- public:
-  using rrt_node<PointType>::rrt;
-  void set_cost(const float &);
-  float get_cost();
-};
-
-template <class PointType>
-void rrt_star_node<PointType>::set_cost(const float &cost) {
-  m_cost = cost;
-}
-
-template <class PointType>
-float rrt_star_node<PointType>::get_cost() {
-  return m_cost;
-}
 
 /* ------------------------------------------
  * ----------------rrt_star------------------
