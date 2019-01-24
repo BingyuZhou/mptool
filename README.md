@@ -18,10 +18,10 @@ Package used for unit test:
 - [x] RRT
 
     ![image](./rrt.png "rrt planner")
-    
+
 - [x] RRT*
 
-    ![image](./rrt.png "rrt planner")
+    ![image](./rrt_star.png "rrt planner")
 
 - [] RRT-Connect
 
