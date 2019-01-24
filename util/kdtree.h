@@ -1,7 +1,4 @@
-/**
- * Balanced K-D tree
- * https://en.wikipedia.org/wiki/K-d_tree
- */
+
 #pragma once
 
 #include "utils.h"
@@ -10,7 +7,8 @@
 #include <vector>
 
 /**
- * KD tree node
+ * Balanced K-D tree
+ * https://en.wikipedia.org/wiki/K-d_tree
  */
 template <class PointType>
 struct Node {

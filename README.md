@@ -16,7 +16,13 @@ Package used for unit test:
 ## Rapidly exploring random tree
 
 - [x] RRT
+
+    ![image](./rrt.png "rrt planner")
+    
 - [x] RRT*
+
+    ![image](./rrt.png "rrt planner")
+
 - [] RRT-Connect
 
 ## Model Predictive Control
