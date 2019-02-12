@@ -2,3 +2,6 @@
 	path = ext/GUnit
 	url = git@github.com:cpp-testing/GUnit.git
 
+[submodule "ext/eigen-git-mirror"]
+	path = ext/eigen-git-mirror
+	url = git@github.com:eigenteam/eigen-git-mirror.git
