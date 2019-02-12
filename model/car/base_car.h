@@ -1,5 +1,7 @@
 #pragma once
 #include <array>
+#include "Eigen/Dense"
+#include
 
 struct pose {
   float x;
@@ -26,8 +28,7 @@ class car {
   car(const float& l, const float& w) : m_length(l), m_width(w){};
 
   /// State update via vehicle dynamics
-  virtual void step(const float& steer_v, const float& throttle,
-                    const float& t);
+  virtual Eigen::VectorXf dynamics(const Eigen::VectorXf& state);
   float get_l();
   float get_w();
   float get_v();
