@@ -1,7 +1,6 @@
 #pragma once
 #include <array>
 #include "Eigen/Dense"
-#include
 
 struct pose {
   float x;
@@ -14,24 +13,34 @@ class car {
   float m_length;
   float m_width;
 
-  /// Observable states
-  pose m_state;
+  /// Sampling time
+  float m_sample;
 
-  /// acceleration
-  float m_acc;
+  /// State [x, y, \theta, \delta, v, s]
+  Eigen::VectorXf m_state;
 
-  /// velocity
-  float m_vel;
-  float m_steer_v;
+  /// Actions
+  std::array<float, 2> m_actions;
+
+  /// Vehicle dynamics, state:= [x, y, \theta, \delta, v, s] actions:=[steer_v,
+  /// throttle]
+  virtual Eigen::VectorXf dynamics(const Eigen::VectorXf& state,
+                                   const std::array<float, 2>& actions);
 
  public:
   car(const float& l, const float& w) : m_length(l), m_width(w){};
 
-  /// State update via vehicle dynamics
-  virtual Eigen::VectorXf dynamics(const Eigen::VectorXf& state);
+  /// One step update
+  void step(const float& steer_v, const float& throttle,
+            const float& time_last);
   float get_l();
   float get_w();
   float get_v();
-  pose get_state();
-  void set_initial_state(const pose&);
+  float get_acc();
+  float get_steer_v();
+  pose get_pose();
+
+  void set_initial_state(const pose& init_s, const float& v, const float& steer,
+                         const float& s);
+  void set_sample(const float&);
 }
