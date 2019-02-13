@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 #include <cmath>
 #include <iostream>
-#include "../util/rk4.h"
+#include "rk4.h"
 
 const float EPS = 1e-4;
 

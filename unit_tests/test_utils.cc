@@ -1,4 +1,4 @@
-#include "../util/utils.h"
+#include "utils.h"
 
 #include <GUnit/GTest-Lite.h>
 #include <GUnit/GTest.h>

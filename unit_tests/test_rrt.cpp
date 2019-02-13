@@ -2,7 +2,7 @@
 #include <GUnit/GTest.h>
 #include <algorithm>
 #include <fstream>
-#include "../rrt/rrt.h"
+#include "rrt.h"
 
 const float EPS = 0.1f;
 typedef std::array<float, 2> point_2d;

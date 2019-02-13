@@ -1,4 +1,4 @@
-#include "../util/kdtree.h"
+#include "kdtree.h"
 
 #include <GUnit/GTest-Lite.h>
 #include <GUnit/GTest.h>

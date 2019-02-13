@@ -1,5 +1,5 @@
 #include <array>
-#include "../rrt_star/rrt_star.h"
+#include "rrt_star.h"
 
 typedef std::array<float, 2> point_2d;
 

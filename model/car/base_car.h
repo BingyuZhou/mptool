@@ -1,25 +1,26 @@
 #pragma once
-#include <array>
 #include "Eigen/Dense"
 
+#include <array>
+
 struct pose {
-  float x;
-  float y;
-  float heading;
+  float x;        ///< m
+  float y;        ///< m
+  float heading;  ///< rad
 };
 
 class car {
   /// size
-  float m_length;
-  float m_width;
+  float m_length;  ///< m
+  float m_width;   ///< m
 
   /// Sampling time
-  float m_sample;
+  float m_sample;  ///< sec
 
   /// State [x, y, \theta, \delta, v, s]
   Eigen::VectorXf m_state;
 
-  /// Actions
+  /// Actions [steer_v, acc]
   std::array<float, 2> m_actions;
 
   /// Vehicle dynamics, state:= [x, y, \theta, \delta, v, s] actions:=[steer_v,
@@ -28,7 +29,7 @@ class car {
                                    const std::array<float, 2>& actions);
 
  public:
-  car(const float& l, const float& w) : m_length(l), m_width(w){};
+  car(const float& l, const float& w);
 
   /// One step update
   void step(const float& steer_v, const float& throttle,
@@ -43,4 +44,4 @@ class car {
   void set_initial_state(const pose& init_s, const float& v, const float& steer,
                          const float& s);
   void set_sample(const float&);
-}
+};
