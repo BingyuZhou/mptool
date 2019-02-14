@@ -7,5 +7,5 @@ ADD_GUNIT_TEST(test_utils.cc ${libs})
 ADD_GUNIT_TEST(test_rk4.cc ${libs})
 ADD_GUNIT_TEST(test_base_car.cc ${libs})
 
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/rrt_star)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/rrt_star ${CMAKE_SOURCE_DIR}/model )
 enable_testing()
