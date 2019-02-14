@@ -23,13 +23,8 @@ class car {
   /// Actions [steer_v, acc]
   std::array<float, 2> m_actions;
 
-  public:
+ public:
   car(const float& l, const float& w);
-
-  /// Vehicle dynamics, state:= [x, y, \theta, \delta, v, s] actions:=[steer_v,
-  /// throttle]
-  virtual Eigen::VectorXf dynamics(const Eigen::VectorXf& state,
-                                   const std::array<float, 2>& actions);
 
   /// One step update
   void step(const float& steer_v, const float& throttle,

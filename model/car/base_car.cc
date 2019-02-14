@@ -9,18 +9,6 @@ car::car(const float& l, const float& w)
       m_state(Eigen::VectorXf::Zero(6)),
       m_sample(0.1f) {}
 
-Eigen::VectorXf car::dynamics(const Eigen::VectorXf& state,
-                              const std::array<float, 2>& actions) {
-  Eigen::VectorXf x_dot;
-  x_dot(0) = state(4) * cos(state(2));
-  x_dot(1) = state(4) * sin(state(2));
-  x_dot(2) = state(4) * tan(state(3)) / m_length;
-  x_dot(3) = actions[0];
-  x_dot(4) = actions[1];
-
-  return x_dot;
-}
-
 void car::step(const float& steer_v, const float& throttle,
                const float& time_last) {
   m_actions[0] = steer_v;
