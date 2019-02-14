@@ -5,3 +5,9 @@
 [submodule "ext/eigen-git-mirror"]
 	path = ext/eigen-git-mirror
 	url = git@github.com:eigenteam/eigen-git-mirror.git
+[submodule "G1fitting"]
+	path = G1fitting
+	url = git@github.com:ebertolazzi/G1fitting.git
+[submodule "ext/G1fitting"]
+	path = ext/G1fitting
+	url = git@github.com:ebertolazzi/G1fitting.git
