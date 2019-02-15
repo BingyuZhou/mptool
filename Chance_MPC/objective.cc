@@ -1,4 +1,5 @@
 #include "objective.h"
+#include "nlopt.h"
 
 #include <cmath>
 

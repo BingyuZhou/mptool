@@ -11,3 +11,6 @@
 [submodule "ext/G1fitting"]
 	path = ext/G1fitting
 	url = git@github.com:ebertolazzi/G1fitting.git
+[submodule "ext/nlopt"]
+	path = ext/nlopt
+	url = git@github.com:stevengj/nlopt.git
