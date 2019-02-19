@@ -14,3 +14,4 @@
 [submodule "ext/nlopt"]
 	path = ext/nlopt
 	url = git@github.com:stevengj/nlopt.git
+

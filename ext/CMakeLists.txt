@@ -19,11 +19,16 @@ TARGET_LINK_LIBRARIES(GUnit INTERFACE gtest_main gmock_main)
 ##########################################################
 # Eigen3
 ##########################################################
+set(EIGEN_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/ext/eigen-git-mirror/Eigen CACHE PATH "eigen include dir")
+install(DIRECTORY ${EIGEN_INCLUDE_DIR} DESTINATION ${CMAKE_SOURCE_DIR})
 
-INCLUDE_DIRECTORIES($<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ext/eigen-git-mirror/Eigen/>)
-
+add_library(Eigen INTERFACE)
+target_include_directories(Eigen INTERFACE
+    $<BUILD_INTERFACE:${EIGEN_INCLUDE_DIR}> 
+)
+install(TARGETS Eigen EXPORT my_export_set DESTINATION lib)
 ##########################################################
 # NLOPT
 ##########################################################
 
-ADD_SUBDIRECTORY(nlopt)
+add_subdirectory(nlopt)
