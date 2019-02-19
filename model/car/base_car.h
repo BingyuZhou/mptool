@@ -35,6 +35,7 @@ class car {
   float get_acc();
   float get_steer_v();
   pose get_pose();
+  Eigen::VectorXf get_state();
 
   void set_initial_state(const pose& init_s, const float& v, const float& steer,
                          const float& s);

@@ -45,6 +45,8 @@ pose car::get_pose() {
   return p;
 }
 
+Eigen::VectorXf car::get_state() { return m_state; }
+
 void car::set_initial_state(const pose& init_s, const float& v,
                             const float& steer, const float& s) {
   m_state(0) = init_s.x;

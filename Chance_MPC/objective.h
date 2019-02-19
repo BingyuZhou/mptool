@@ -8,6 +8,11 @@ class obj {
   float m_state[6];   ///< [x, y, \theta, \delta, v, s]
   float m_action[2];  ///< [steer_v, acceleration]
 
+  /// Contour & lag error
+  void error(const boost::math::cubic_b_spline<float>* ref_path_x,
+             const boost::math::cubic_b_spline<float>* ref_path_y,
+             float& e_contour, float& e_lag);
+
  public:
   obj();
 
@@ -16,10 +21,5 @@ class obj {
                   const boost::math::cubic_b_spline<float>* ref_path_x,
                   const boost::math::cubic_b_spline<float>* ref_path_y,
                   const float& length);
-
-  /// Contour & lag error
-  void error(const boost::math::cubic_b_spline<float>* ref_path_x,
-             const boost::math::cubic_b_spline<float>* ref_path_y,
-             float& e_contour, float& e_lag);
 };
 }  // namespace cmpc
