@@ -1,9 +1,11 @@
 #pragma once
 
+#include "Eigen/Core"
+#include "obstacle_sym.h"
+
 #include <cassert>
 #include <cmath>
 #include <json.hpp>
-#include "obstacle_sym.h"
 
 template <class T>
 float euclidian_dis(const T &n1, const T &n2) {
@@ -36,4 +38,10 @@ float Lebesgue_measure(const std::vector<int> &state_space,
                 (obs->top_left.second - obs->bottom_right.second);
   }
   return all_area - obs_area;
+}
+
+Eigen::Matrix2d rotation2D(const float &theta) {
+  Eigen::Matrix2d rot;
+  rot << cos(theta), -sin(theta), sin(theta), cos(theta);
+  return rot;
 }
