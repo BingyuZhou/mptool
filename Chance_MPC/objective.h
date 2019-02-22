@@ -13,7 +13,7 @@ class obj {
              const boost::math::cubic_b_spline<float>* ref_path_y,
              float& e_contour, float& e_lag);
 
- public:
+  public:
   obj();
 
   /// step cost

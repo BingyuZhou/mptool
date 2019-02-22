@@ -31,16 +31,18 @@ void car::step(const float& steer_v, const float& throttle,
   rk4(dynamics, m_sample, time_last, m_state, m_actions);
 }
 
-float car::get_l() { return m_length; }
+float car::get_l() const { return m_length; }
 
-float car::get_w() { return m_width; }
+float car::get_w() const { return m_width; }
 
-float car::get_v() { return m_state[4]; }
+float car::get_v() const { return m_state[4]; }
 
-float car::get_acc() { return m_actions[1]; }
-float car::get_steer_v() { return m_actions[0]; }
+float car::get_acc() const { return m_actions[1]; }
+float car::get_steer_v() const { return m_actions[0]; }
 
-pose car::get_pose() {
+float car::get_steer_angle() const { return m_state[3]; }
+
+pose car::get_pose() const {
   pose p = {m_state[0], m_state[1], m_state[2]};
   return p;
 }

@@ -4,6 +4,7 @@
 
 namespace cmpc {
 constraint::constraint(const float& sample_t) : m_sample(sample_t){};
+
 Eigen::VectorXf constraint::single_equality_const(car* ego_veh,
                                                   const float& steer_v,
                                                   const float& throttle) {
@@ -32,6 +33,8 @@ double* constraint::collision_avoidance(const Eigen::MatrixXd& repr_ego,
                                         const double* uncertainty) {
   assert(obs_pred.size() == num_policies);
 
+  Eigen::VectorXd result;
+
   // for each policy
   for (int i = 0; i < num_policies; ++i) {
     // Uncertainty ellipsoid
@@ -44,32 +47,78 @@ double* constraint::collision_avoidance(const Eigen::MatrixXd& repr_ego,
 
     Eigen::Matrix2d ellip_pos;
     auto rot = rotation2D(obs_pred[i].heading);
-    Eigen::DiagonalMatrix<double, 2> ab(1.0 / a_semi * a_semi,
-                                        1.0 / b_semi * b_semi);
+    Eigen::DiagonalMatrix<double, 2> ab(1.0 / (a_semi * a_semi),
+                                        1.0 / (b_semi * b_semi));
     ellip_pos = rot * ab * rot.transpose();
     Eigen::MatrixXd term = repr_ego.colwise() - center;
-    auto collision =
-        ((term * ellip_pos).array() * term.array()).rowwise().sum();
+    Eigen::MatrixXd collision =
+        1.0 - ((term * ellip_pos).array() * term.array()).rowwise().sum();
+
+    result << result, collision;
   }
+
+  return result.data();
 };
 
-double* constraint::equality_const(unsigned n, const double* x, double* grad,
-                                   void* data) {
+double* road_boundary(const float& e_contour, const double& road_ub,
+                      const double& road_lb) {
+  double result[2];
+  result[0] = e_contour - road_ub;
+  result[1] = road_lb - e_contour;
+
+  return result;
+}
+
+double yaw_regulate(const car* ego_veh, const double& yaw_max) {
+  return abs(ego_veh->get_v() / ego_veh->get_l() *
+             tan(ego_veh->get_steer_angle())) -
+         yaw_max;
+}
+
+void constraint::equality_const(unsigned m, double* result, unsigned n,
+                                const double* x, double* grad, void* data) {
   opt_set* opt_data = reinterpret_cast<opt_set*>(data);
-  double result[opt_data->state_dim * opt_data->horizon] = {0.0};
   uint16_t state_action_dim = opt_data->action_dim + opt_data->state_dim;
+
+  car* car_sim = new car(opt_data->length, opt_data->width);
+
+  car_sim->set_initial_state(opt_data->init_pose, opt_data->init_v,
+                             opt_data->init_steer, opt_data->init_dis);
+
   for (int i = 0; i < opt_data->horizon; ++i) {
-    auto new_state =
-        single_equality_const(opt_data->ego_veh, x[i * state_action_dim],
-                              x[i * state_action_dim + 1]);
+    auto new_state = single_equality_const(car_sim, x[i * state_action_dim],
+                                           x[i * state_action_dim + 1]);
     for (int j = 0; j < opt_data->state_dim; ++j)
       result[j] =
           new_state(j) - x[i * state_action_dim + opt_data->action_dim + j];
   }
-  return result;
 };
 
-double* constraint::inequality_const(unsigned n, const double* x, double* grad,
-                                     void* data){};
+void constraint::inequality_const(unsigned m, double* result, unsigned n,
+                                  const double* x, double* grad, void* data) {
+  opt_set* opt_data = reinterpret_cast<opt_set*>(data);
+  uint16_t state_action_dim = opt_data->action_dim + opt_data->state_dim;
+
+  // Collision
+  for (int t = 0; t < opt_data->horizon; ++t) {
+    pose tmp_pose(x[t * state_action_dim + opt_data->action_dim],
+                  x[t * state_action_dim + opt_data->action_dim + 1],
+                  x[t * state_action_dim + opt_data->action_dim + 2]);
+    Eigen::MatrixXd repr_ego;
+    represent_ego(tmp_pose, opt_data->length, repr_ego);
+
+    for (int i = 0; i < opt_data->num_obs; ++i) {
+      obs* obstacle_tmp = opt_data->obstacles[i];
+
+      std::vector<pose> pred_slice(obstacle_tmp->get_num_policies());
+
+      for (int j = 0; j < obstacle_tmp->get_num_policies(); ++j)
+        pred_slice[j] = obstacle_tmp->pred_trajs[j][t];
+
+      collision_avoidance(repr_ego, obstacle_tmp->get_num_policies(),
+                          pred_slice);
+    }
+  }
+};
 
 }  // namespace cmpc

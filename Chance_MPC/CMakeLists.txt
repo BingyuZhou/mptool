@@ -4,6 +4,7 @@ solver.cc
 objective.h
 objective.cc
 constraints.h
-constraints.cc)
+constraints.cc
+)
 
 TARGET_LINK_LIBRARIES(CMPC car)
