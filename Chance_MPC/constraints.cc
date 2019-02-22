@@ -116,7 +116,8 @@ void constraint::inequality_const(unsigned m, double* result, unsigned n,
         pred_slice[j] = obstacle_tmp->pred_trajs[j][t];
 
       collision_avoidance(repr_ego, obstacle_tmp->get_num_policies(),
-                          pred_slice);
+                          pred_slice, obstacle_tmp->get_l(),
+                          obstacle_tmp->get_w(), );
     }
   }
 };
