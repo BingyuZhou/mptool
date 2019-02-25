@@ -3,20 +3,24 @@
 #include "base_car.h"
 
 #include <stdint.h>
+#include <array>
 #include <vector>
 
 namespace cmpc {
 typedef std::vector<std::vector<pose>> trajs;
 
 class obs {
-  uint16_t m_num_policies;
-  double m_l;
-  double m_w;
+  uint16_t m_num_policies;  ///< Number of different policies(intentions)
+  double m_l;               ///< Obstacle length
+  double m_w;               ///< Obstacles width
 
  public:
-  trajs& pred_trajs;
+  trajs pred_trajs;  ///< Trajectory prediction under different intentions
 
-  obs();
+  std::array<double, 2> uncertainty;  ///< Uncertainty of obstalces along
+                                      ///< longitudinal and latittude axis
+
+  obs(const std::array<double, 2>& uncertain);
 
   /// Set obstacle size
   void set_size(const double& l, const double& w);

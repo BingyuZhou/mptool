@@ -5,6 +5,8 @@ objective.h
 objective.cc
 constraints.h
 constraints.cc
+obs.h
+obs.cc
 )
 
 TARGET_LINK_LIBRARIES(CMPC car)

@@ -4,14 +4,14 @@ using namespace std;
 using namespace Eigen;
 
 namespace cmpc {
-obs::obs() {}
+obs::obs(const std::array<double, 2>& uncertain) : uncertainty(uncertain){};
 
 void obs::set_size(const double& l, const double& w) {
   m_l = l;
   m_w = w;
 };
 
-void obs::pred(trajs& pred_trajs){};
+void obs::pred(){};
 
 double obs::get_l() const { return m_l; }
 

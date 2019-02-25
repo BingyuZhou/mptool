@@ -2,6 +2,10 @@
 #include "Eigen/Core"
 #include "utils.h"
 
+using namespace std;
+
+const uint16_t num_ego_circles = 4;
+
 namespace cmpc {
 constraint::constraint(const float& sample_t) : m_sample(sample_t){};
 
@@ -25,15 +29,14 @@ void represent_ego(const pose& ego_veh, const float& length,
   repr_ego.colwise() += ego_pos;
 }
 
-double* constraint::collision_avoidance(const Eigen::MatrixXd& repr_ego,
-                                        const uint16_t& num_policies,
-                                        const std::vector<pose>& obs_pred,
-                                        const float& obs_length,
-                                        const float& obs_width,
-                                        const double* uncertainty) {
+Eigen::VectorXd constraint::collision_avoidance(
+    const Eigen::MatrixXd& repr_ego, const uint16_t& num_policies,
+    const vector<pose>& obs_pred, const float& obs_length,
+    const float& obs_width, const array<double, 2>& uncertainty) {
   assert(obs_pred.size() == num_policies);
 
-  Eigen::VectorXd result;
+  Eigen::VectorXd result =
+      Eigen::VectorXd::Zero(num_ego_circles * num_policies);
 
   // for each policy
   for (int i = 0; i < num_policies; ++i) {
@@ -54,10 +57,10 @@ double* constraint::collision_avoidance(const Eigen::MatrixXd& repr_ego,
     Eigen::MatrixXd collision =
         1.0 - ((term * ellip_pos).array() * term.array()).rowwise().sum();
 
-    result << result, collision;
+    result.segment(i * num_ego_circles, num_ego_circles) = collision;
   }
 
-  return result.data();
+  return result;
 };
 
 double* road_boundary(const float& e_contour, const double& road_ub,
@@ -75,8 +78,9 @@ double yaw_regulate(const car* ego_veh, const double& yaw_max) {
          yaw_max;
 }
 
-void constraint::equality_const(unsigned m, double* result, unsigned n,
-                                const double* x, double* grad, void* data) {
+void constraint::equality_const_step(unsigned m, double* result, unsigned n,
+                                     const double* x, double* grad,
+                                     void* data) {
   opt_set* opt_data = reinterpret_cast<opt_set*>(data);
   uint16_t state_action_dim = opt_data->action_dim + opt_data->state_dim;
 
@@ -94,32 +98,43 @@ void constraint::equality_const(unsigned m, double* result, unsigned n,
   }
 };
 
-void constraint::inequality_const(unsigned m, double* result, unsigned n,
-                                  const double* x, double* grad, void* data) {
-  opt_set* opt_data = reinterpret_cast<opt_set*>(data);
-  uint16_t state_action_dim = opt_data->action_dim + opt_data->state_dim;
+void constraint::collision_const_step(const uint16_t& t, const pose& ego_pose,
+                                      const float& length,
+                                      const uint16_t& action_dim,
+                                      const uint16_t& state_dim,
+                                      const std::vector<cmpc::obs*>& obstacles,
+                                      Eigen::VectorXd& result) {
+  uint16_t state_action_dim = action_dim + state_dim;
+
+  // Number of collision avoidance inequalities
+  int sum_num_policies = 0;
+  for (auto o : obstacles) sum_num_policies += o->get_num_policies();
+
+  // Size of result
+  result.resize(num_ego_circles * sum_num_policies);
+  int tail = 0;
 
   // Collision
-  for (int t = 0; t < opt_data->horizon; ++t) {
-    pose tmp_pose(x[t * state_action_dim + opt_data->action_dim],
-                  x[t * state_action_dim + opt_data->action_dim + 1],
-                  x[t * state_action_dim + opt_data->action_dim + 2]);
-    Eigen::MatrixXd repr_ego;
-    represent_ego(tmp_pose, opt_data->length, repr_ego);
+  Eigen::MatrixXd repr_ego;
+  represent_ego(ego_pose, length, repr_ego);
 
-    for (int i = 0; i < opt_data->num_obs; ++i) {
-      obs* obstacle_tmp = opt_data->obstacles[i];
+  for (int i = 0; i < obstacles.size(); ++i) {
+    obs* obstacle_tmp = obstacles[i];
 
-      std::vector<pose> pred_slice(obstacle_tmp->get_num_policies());
+    std::vector<pose> pred_slice(obstacle_tmp->get_num_policies());
 
-      for (int j = 0; j < obstacle_tmp->get_num_policies(); ++j)
-        pred_slice[j] = obstacle_tmp->pred_trajs[j][t];
+    for (int j = 0; j < obstacle_tmp->get_num_policies(); ++j)
+      pred_slice[j] = obstacle_tmp->pred_trajs[j][t];
 
-      collision_avoidance(repr_ego, obstacle_tmp->get_num_policies(),
-                          pred_slice, obstacle_tmp->get_l(),
-                          obstacle_tmp->get_w(), );
-    }
+    result.segment(tail, num_ego_circles * obstacle_tmp->get_num_policies()) =
+        collision_avoidance(repr_ego, obstacle_tmp->get_num_policies(),
+                            pred_slice, obstacle_tmp->get_l(),
+                            obstacle_tmp->get_w(), obstacle_tmp->uncertainty);
+
+    tail += num_ego_circles * obstacle_tmp->get_num_policies();
   }
-};
 
-}  // namespace cmpc
+  assert(tail == num_ego_circles * sum_num_policies);
+}
+
+};  // namespace cmpc
