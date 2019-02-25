@@ -10,8 +10,8 @@ namespace cmpc {
 constraint::constraint(const float& sample_t) : m_sample(sample_t){};
 
 Eigen::VectorXf constraint::single_equality_const(car* ego_veh,
-                                                  const float& steer_v,
-                                                  const float& throttle) {
+                                                  const double& steer_v,
+                                                  const double& throttle) {
   ego_veh->step(steer_v, throttle, m_sample);
   return ego_veh->get_state();
 }
@@ -78,25 +78,17 @@ double yaw_regulate(const car* ego_veh, const double& yaw_max) {
          yaw_max;
 }
 
-void constraint::equality_const_step(unsigned m, double* result, unsigned n,
-                                     const double* x, double* grad,
-                                     void* data) {
-  opt_set* opt_data = reinterpret_cast<opt_set*>(data);
-  uint16_t state_action_dim = opt_data->action_dim + opt_data->state_dim;
+void constraint::equality_const_step(
+    const uint16_t& action_dim, const uint16_t& state_dim, const float& length,
+    const float& width, const pose& init_pose, const double& init_v,
+    const double& init_steer, const double& init_dis, car* car_sim,
+    const vector<double>& x, vector<double>& result) {
+  uint16_t state_action_dim = action_dim + state_dim;
 
-  car* car_sim = new car(opt_data->length, opt_data->width);
+  auto new_state = single_equality_const(car_sim, x[6], x[7]);
+  for (int j = 0; j < state_dim; ++j) result[j] = new_state(j) - x[j];
 
-  car_sim->set_initial_state(opt_data->init_pose, opt_data->init_v,
-                             opt_data->init_steer, opt_data->init_dis);
-
-  for (int i = 0; i < opt_data->horizon; ++i) {
-    auto new_state = single_equality_const(car_sim, x[i * state_action_dim],
-                                           x[i * state_action_dim + 1]);
-    for (int j = 0; j < opt_data->state_dim; ++j)
-      result[j] =
-          new_state(j) - x[i * state_action_dim + opt_data->action_dim + j];
-  }
-};
+};  // namespace cmpc
 
 void constraint::collision_const_step(const uint16_t& t, const pose& ego_pose,
                                       const float& length,
@@ -136,5 +128,4 @@ void constraint::collision_const_step(const uint16_t& t, const pose& ego_pose,
 
   assert(tail == num_ego_circles * sum_num_policies);
 }
-
 };  // namespace cmpc

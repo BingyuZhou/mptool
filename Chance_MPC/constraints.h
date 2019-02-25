@@ -32,8 +32,8 @@ class constraint {
   double m_ego_radius;  ///< radius of enveloping circles
 
   /// Equality constraints i.e. state dynamics
-  Eigen::VectorXf single_equality_const(car* ego_veh, const float& steer_v,
-                                        const float& throttle);
+  Eigen::VectorXf single_equality_const(car* ego_veh, const double& steer_v,
+                                        const double& throttle);
 
   /// Brief Collision avoidance. Ego-veh vs one obstacle
   Eigen::VectorXd collision_avoidance(const Eigen::MatrixXd& repr_ego,
@@ -55,14 +55,19 @@ class constraint {
                         const double& road_lb);
 
   /// Whole bunch of equality constraints (one step)
-  void equality_const_step(unsigned m, double* result, unsigned n,
-                           const double* x, double* grad, void* data);
+  void equality_const_step(const uint16_t& action_dim,
+                           const uint16_t& state_dim, const float& length,
+                           const float& width, const pose& init_pose,
+                           const double& init_v, const double& init_steer,
+                           const double& init_dis, car* car_sim,
+                           const std::vector<double>& x,
+                           std::vector<double>& result);
 
   /// Whole bunch of inequality cinstraints (one step)
   void collision_const_step(const uint16_t& t, const pose& ego_pose,
                             const float& length, const uint16_t& action_dim,
                             const uint16_t& state_dim,
-                            const std::vector<cmpc::obs*>& obstacles,
+                            const std::vector<obs*>& obstacles,
                             Eigen::VectorXd& result);
 };
 };  // namespace cmpc
