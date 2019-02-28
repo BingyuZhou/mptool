@@ -48,6 +48,6 @@ class cmpc {
                           const double* x, double* grad, void* data);
 
   /// Solve
-  void solve();
+  void solve(const double* lb, const double* ub, const opt_set* opt_data);
 };
 };  // namespace cmpc

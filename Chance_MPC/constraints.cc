@@ -126,7 +126,5 @@ void constraint::collision_const_step(const uint16_t& t, const pose& ego_pose,
 
     tail += num_ego_circles * obstacle_tmp->get_num_policies();
   }
-
-  assert(tail == num_ego_circles * sum_num_policies);
 }
 };  // namespace cmpc

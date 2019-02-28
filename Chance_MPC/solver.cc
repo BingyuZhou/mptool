@@ -3,8 +3,14 @@
 #include "nlopt.h"
 #include "objective.h"
 
+#include <iostream>
+
 using namespace std;
 using namespace Eigen;
+
+const uint16_t num_ego_circles = 4;
+const uint16_t num_road_bound = 2;
+const uint16_t num_yaw_reg = 1;
 
 namespace cmpc {
 cmpc::cmpc(){};
@@ -34,18 +40,15 @@ void cmpc::set_inequality_const(unsigned m, double* result, unsigned n,
   opt_set* opt_data = reinterpret_cast<opt_set*>(data);
   int tail = 0;
   // Collision
-  VectorXd col_result;
+  // Number of collision avoidance inequalities
+  int sum_num_policies = 0;
+  for (auto o : opt_data->obstacles) sum_num_policies += o->get_num_policies();
+  VectorXd col_result(sum_num_policies);
+
   for (int i = 0; i < m_horizon; ++i) {
     const double* current_x = x + i * (m_state_dim + m_action_dim);
     // representation of ego-veh
     pose ego_pose(current_x[2], current_x[3], current_x[4]);
-
-    // Number of collision avoidance inequalities
-    int sum_num_policies = 0;
-    for (auto o : opt_data->obstacles)
-      sum_num_policies += o->get_num_policies();
-
-    col_result.resize(sum_num_policies);
 
     constraint::collision_const_step(i, ego_pose, opt_data->length,
                                      opt_data->width, m_action_dim, m_state_dim,
@@ -98,5 +101,50 @@ void cmpc::set_equality_const(unsigned m, double* result, unsigned n,
 }
 
 /// Solve
-void cmpc::solve() {}
+void cmpc::solve(const double* lb, const double* ub, const opt_set* opt_data) {
+  // Number of optimization variables
+  const int num_var = m_horizon * (m_state_dim + m_action_dim);
+
+  // Optimizer
+  nlopt_opt opt = nlopt_create(nlopt_algorithm::NLOPT_LN_COBYLA, num_var);
+
+  // Vars boundary
+  nlopt_set_lower_bounds(opt, lb);
+  nlopt_set_upper_bounds(opt, ub);
+
+  // Objective
+  nlopt_set_min_objective(opt, this->set_objective, (void*)opt_data);
+
+  // Equality constrs
+  double tol_eq[m_state_dim * m_horizon] = {1e-8};
+  nlopt_result r = nlopt_add_equality_mconstraint(opt, m_state_dim * m_horizon,
+                                                  this->set_equality_const,
+                                                  (void*)opt_data, tol_eq);
+  if (r < 0) cout << r << endl;
+
+  // Inequality constrs
+  // Number of collision avoidance inequalities
+  int sum_num_policies = 0;
+  for (auto o : opt_data->obstacles) sum_num_policies += o->get_num_policies();
+  int num_ineq = m_horizon * (sum_num_policies * num_ego_circles +
+                              num_road_bound + num_yaw_reg);
+
+  double tol_ineq[num_ineq] = {1e-3};
+  r = nlopt_add_inequality_mconstraint(
+      opt, num_ineq, this->set_inequality_const, (void*)opt_data, tol_ineq);
+  if (r < 0) cout << r << endl;
+
+  // Optimization
+  nlopt_set_force_stop(opt, 300);
+
+  double x[num_var] = {0.0};
+
+  double minf;
+  if (nlopt_optimize(opt, x, &minf) < 0) {
+    printf("nlopt failed! %d\n", nlopt_optimize(opt, x, &minf));
+  } else {
+    printf("found minimum cost %g\n", minf);
+  }
+  nlopt_destroy(opt);
+}
 }  // namespace cmpc
