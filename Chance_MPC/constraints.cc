@@ -7,17 +7,19 @@ using namespace std;
 const uint16_t num_ego_circles = 4;
 
 namespace cmpc {
-constraint::constraint(const float& sample_t) : m_sample(sample_t){};
+constraint::constraint(){};
 
 Eigen::VectorXf constraint::single_equality_const(car* ego_veh,
                                                   const double& steer_v,
-                                                  const double& throttle) {
-  ego_veh->step(steer_v, throttle, m_sample);
+                                                  const double& throttle,
+                                                  const float& sample_t) {
+  ego_veh->step(steer_v, throttle, sample_t);
   return ego_veh->get_state();
 }
 
-void represent_ego(const pose& ego_veh, const float& length,
-                   Eigen::MatrixXd& repr_ego) {
+void constraint::represent_ego(const pose& ego_veh, const float& length,
+                               const float& width, Eigen::MatrixXd& repr_ego,
+                               double& ego_radius) {
   Eigen::Matrix2d rot = rotation2D(ego_veh.heading);
 
   Eigen::MatrixXd segment(2, 4);
@@ -27,12 +29,15 @@ void represent_ego(const pose& ego_veh, const float& length,
 
   repr_ego = rot * segment;
   repr_ego.colwise() += ego_pos;
+
+  ego_radius = sqrt(pow(length / 8.0, 2) + pow(width / 2.0, 2));
 }
 
 Eigen::VectorXd constraint::collision_avoidance(
-    const Eigen::MatrixXd& repr_ego, const uint16_t& num_policies,
-    const vector<pose>& obs_pred, const float& obs_length,
-    const float& obs_width, const array<double, 2>& uncertainty) {
+    const Eigen::MatrixXd& repr_ego, const double& ego_radius,
+    const uint16_t& num_policies, const vector<pose>& obs_pred,
+    const float& obs_length, const float& obs_width,
+    const array<double, 2>& uncertainty) {
   assert(obs_pred.size() == num_policies);
 
   Eigen::VectorXd result =
@@ -42,8 +47,8 @@ Eigen::VectorXd constraint::collision_avoidance(
   for (int i = 0; i < num_policies; ++i) {
     // Uncertainty ellipsoid
     // (s-center)*ellip_pos*(s-center)^T<=1
-    double a_semi = obs_length / sqrt(2) + m_ego_radius + uncertainty[0];
-    double b_semi = obs_width / sqrt(2) + m_ego_radius + uncertainty[1];
+    double a_semi = obs_length / sqrt(2) + ego_radius + uncertainty[0];
+    double b_semi = obs_width / sqrt(2) + ego_radius + uncertainty[1];
 
     Eigen::Vector2d center;
     center << obs_pred[i].x, obs_pred[i].y;
@@ -63,8 +68,8 @@ Eigen::VectorXd constraint::collision_avoidance(
   return result;
 };
 
-double* road_boundary(const float& e_contour, const double& road_ub,
-                      const double& road_lb) {
+double* constraint::road_boundary(const float& e_contour, const double& road_ub,
+                                  const double& road_lb) {
   double result[2];
   result[0] = e_contour - road_ub;
   result[1] = road_lb - e_contour;
@@ -72,43 +77,38 @@ double* road_boundary(const float& e_contour, const double& road_ub,
   return result;
 }
 
-double yaw_regulate(const car* ego_veh, const double& yaw_max) {
-  return abs(ego_veh->get_v() / ego_veh->get_l() *
-             tan(ego_veh->get_steer_angle())) -
-         yaw_max;
+double constraint::yaw_regulate(const double& v, const double& length,
+                                const double& steer_angle,
+                                const double& yaw_max) {
+  return abs(v / length * tan(steer_angle)) - yaw_max;
 }
 
 void constraint::equality_const_step(
     const uint16_t& action_dim, const uint16_t& state_dim, const float& length,
     const float& width, const pose& init_pose, const double& init_v,
     const double& init_steer, const double& init_dis, car* car_sim,
-    const vector<double>& x, vector<double>& result) {
+    const float& sample, const double* x, double* result) {
   uint16_t state_action_dim = action_dim + state_dim;
 
-  auto new_state = single_equality_const(car_sim, x[6], x[7]);
+  auto new_state = single_equality_const(car_sim, x[6], x[7], sample);
   for (int j = 0; j < state_dim; ++j) result[j] = new_state(j) - x[j];
 
 };  // namespace cmpc
 
 void constraint::collision_const_step(const uint16_t& t, const pose& ego_pose,
-                                      const float& length,
+                                      const float& length, const float& width,
                                       const uint16_t& action_dim,
                                       const uint16_t& state_dim,
-                                      const std::vector<cmpc::obs*>& obstacles,
+                                      const std::vector<obs*>& obstacles,
                                       Eigen::VectorXd& result) {
   uint16_t state_action_dim = action_dim + state_dim;
 
-  // Number of collision avoidance inequalities
-  int sum_num_policies = 0;
-  for (auto o : obstacles) sum_num_policies += o->get_num_policies();
-
-  // Size of result
-  result.resize(num_ego_circles * sum_num_policies);
   int tail = 0;
 
   // Collision
   Eigen::MatrixXd repr_ego;
-  represent_ego(ego_pose, length, repr_ego);
+  double ego_radius;
+  represent_ego(ego_pose, length, width, repr_ego, ego_radius);
 
   for (int i = 0; i < obstacles.size(); ++i) {
     obs* obstacle_tmp = obstacles[i];
@@ -119,9 +119,10 @@ void constraint::collision_const_step(const uint16_t& t, const pose& ego_pose,
       pred_slice[j] = obstacle_tmp->pred_trajs[j][t];
 
     result.segment(tail, num_ego_circles * obstacle_tmp->get_num_policies()) =
-        collision_avoidance(repr_ego, obstacle_tmp->get_num_policies(),
-                            pred_slice, obstacle_tmp->get_l(),
-                            obstacle_tmp->get_w(), obstacle_tmp->uncertainty);
+        collision_avoidance(repr_ego, ego_radius,
+                            obstacle_tmp->get_num_policies(), pred_slice,
+                            obstacle_tmp->get_l(), obstacle_tmp->get_w(),
+                            obstacle_tmp->uncertainty);
 
     tail += num_ego_circles * obstacle_tmp->get_num_policies();
   }

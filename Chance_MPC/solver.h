@@ -10,7 +10,17 @@ struct opt_set {
   float width;                                     ///< Car width
   Eigen::VectorXd weights;                         ///< Weights of objective
   boost::math::cubic_b_spline<float>* ref_path_x;  ///< Reference path (dis->x)
-  boost::math::cubic_b_spline<float>* ref_path_y;  ///< REference path (dis->y)
+  boost::math::cubic_b_spline<float>* ref_path_y;  ///< Reference path (dis->y)
+  std::vector<obs*> obstacles;  ///< Obstacles with prediction
+  float road_lb;                ///< Road lower boundary
+  float road_ub;                ///< Road upper boundary
+
+  pose init_pose;
+  double init_v;
+  double init_steer;
+  double init_dis;
+
+  double yaw_max;  ///< Max yaw rate
 };
 
 /// Chance-constraint MPC

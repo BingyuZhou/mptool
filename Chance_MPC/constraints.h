@@ -8,66 +8,50 @@
 
 namespace cmpc {
 
-/// Settings for mpc
-struct opt_set {
-  uint16_t horizon;     ///< Prediction horizon
-  uint16_t state_dim;   ///< State dimention
-  uint16_t action_dim;  ///< Action dimention
-
-  pose init_pose;         ///< Initial pose
-  float init_v;           ///< Initial velocity
-  float init_steer;       ///< Initial steer angel
-  float init_dis;         ///< Initial distance
-  float length;           ///< Car length
-  float width;            ///< Car width
-  double envelop_radius;  ///< Enveloping radius of ego-veh
-
-  uint16_t num_obs;             ///< Number of obstacles
-  std::vector<obs*> obstacles;  ///< Obstacles
-};
-
 /// Constraints
 class constraint {
-  float m_sample;       ///< sampling time
-  double m_ego_radius;  ///< radius of enveloping circles
-
   /// Equality constraints i.e. state dynamics
-  Eigen::VectorXf single_equality_const(car* ego_veh, const double& steer_v,
-                                        const double& throttle);
+  static Eigen::VectorXf single_equality_const(car* ego_veh,
+                                               const double& steer_v,
+                                               const double& throttle,
+                                               const float& sample_t);
 
   /// Brief Collision avoidance. Ego-veh vs one obstacle
-  Eigen::VectorXd collision_avoidance(const Eigen::MatrixXd& repr_ego,
-                                      const uint16_t& num_policies,
-                                      const std::vector<pose>& obs_pred,
-                                      const float& obs_length,
-                                      const float& obs_width,
-                                      const std::array<double, 2>& uncertainty);
+  static Eigen::VectorXd collision_avoidance(
+      const Eigen::MatrixXd& repr_ego, const double& ego_radius,
+      const uint16_t& num_policies, const vector<pose>& obs_pred,
+      const float& obs_length, const float& obs_width,
+      const array<double, 2>& uncertainty);
 
  public:
-  constraint(const float& sample_t);
+  constraint();
 
   /// Brief Representation of ego-veh. Compute four circles enveloping car
-  void represent_ego(const pose& ego_veh, const float& length,
-                     Eigen::MatrixXd& repr_ego);
+  static void represent_ego(const pose& ego_veh, const float& length,
+                            const float& width, Eigen::MatrixXd& repr_ego,
+                            double& ego_radius);
 
   /// Road boundary
-  double* road_boundary(const float& e_contour, const double& road_ub,
-                        const double& road_lb);
+  static double* road_boundary(const float& e_contour, const double& road_ub,
+                               const double& road_lb);
+
+  /// Yaw regulation
+  static double yaw_regulate(const double& v, const double& length,
+                             const double& steer_angle, const double& yaw_max);
 
   /// Whole bunch of equality constraints (one step)
-  void equality_const_step(const uint16_t& action_dim,
-                           const uint16_t& state_dim, const float& length,
-                           const float& width, const pose& init_pose,
-                           const double& init_v, const double& init_steer,
-                           const double& init_dis, car* car_sim,
-                           const std::vector<double>& x,
-                           std::vector<double>& result);
+  static void equality_const_step(
+      const uint16_t& action_dim, const uint16_t& state_dim,
+      const float& length, const float& width, const pose& init_pose,
+      const double& init_v, const double& init_steer, const double& init_dis,
+      car* car_sim, const float& sample, const double* x, double* result);
 
   /// Whole bunch of inequality cinstraints (one step)
-  void collision_const_step(const uint16_t& t, const pose& ego_pose,
-                            const float& length, const uint16_t& action_dim,
-                            const uint16_t& state_dim,
-                            const std::vector<obs*>& obstacles,
-                            Eigen::VectorXd& result);
+  static void collision_const_step(const uint16_t& t, const pose& ego_pose,
+                                   const float& length, const float& width,
+                                   const uint16_t& action_dim,
+                                   const uint16_t& state_dim,
+                                   const std::vector<obs*>& obstacles,
+                                   Eigen::VectorXd& result);
 };
 };  // namespace cmpc
