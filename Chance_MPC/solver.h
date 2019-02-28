@@ -21,6 +21,8 @@ struct opt_set {
   double init_dis;
 
   double yaw_max;  ///< Max yaw rate
+
+  opt_set(){};
 };
 
 /// Chance-constraint MPC
