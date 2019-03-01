@@ -9,4 +9,4 @@ obs.h
 obs.cc
 )
 
-TARGET_LINK_LIBRARIES(CMPC car)
+TARGET_LINK_LIBRARIES(cmpc car Eigen nlopt)

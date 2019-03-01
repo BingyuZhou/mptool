@@ -6,10 +6,9 @@ ADD_GUNIT_TEST(test_rrt_star.cpp ${libs})
 ADD_GUNIT_TEST(test_utils.cc ${libs})
 ADD_GUNIT_TEST(test_rk4.cc ${libs})
 ADD_GUNIT_TEST(test_base_car.cc ${libs})
+ADD_GUNIT_TEST(example_mpc.cc ${libs})
+ADD_GUNIT_TEST(test_cmpc.cc ${libs})
 
 enable_testing()
-ADD_EXECUTABLE(test_mpc example_mpc.cc)
-target_link_libraries(test_mpc ${libs} )
-ADD_TEST(mpc test_mpc)
 
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/rrt_star ${CMAKE_SOURCE_DIR}/model )

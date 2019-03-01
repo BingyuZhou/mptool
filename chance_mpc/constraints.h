@@ -19,7 +19,7 @@ class constraint {
   /// Brief Collision avoidance. Ego-veh vs one obstacle
   static Eigen::VectorXd collision_avoidance(
       const Eigen::MatrixXd& repr_ego, const double& ego_radius,
-      const uint16_t& num_policies, const vector<pose>& obs_pred,
+      const uint16_t& num_policies, const std::vector<pose>& obs_pred,
       const float& obs_length, const float& obs_width,
       const array<double, 2>& uncertainty);
 
