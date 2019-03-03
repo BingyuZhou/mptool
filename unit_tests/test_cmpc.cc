@@ -49,5 +49,23 @@ GTEST("test_cmpc") {
 
     EXPECT_FLOAT_EQ(ref_y(0.0f), -2.0f);
     EXPECT_FLOAT_EQ(ref_y(15.0f), 4.0f);
+
+    std::ofstream file;
+    file.open("ref_path.csv");
+
+    for (double s = 0; s < 50.0; s += 1.0)
+      file << ref_x(s) << "\t" << ref_y(s) << "\n";
+
+    file.close();
+  }
+
+  SHOULD("cmpc_planning") {
+    vector<float> x_way{27.0, 27.0, 17.0, -400.0};
+    vector<float> y_way{-12.2, -2.0, 8.0, 8.0};
+    boost::math::cubic_b_spline<float> ref_x(x_way.data(), x_way.size(), 0.0f,
+                                             5.0f);
+    boost::math::cubic_b_spline<float> ref_y(y_way.data(), y_way.size(), 0.0f,
+                                             5.0f);
+    opt_data->ref_path_x
   }
 }

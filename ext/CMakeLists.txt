@@ -31,3 +31,8 @@ target_include_directories(Eigen INTERFACE
 # NLOPT
 ##########################################################
 add_subdirectory(nlopt)
+
+##########################################################
+# G1fitting
+##########################################################
+add_subdirectory(G1fitting)

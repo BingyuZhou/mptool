@@ -35,4 +35,6 @@ int main() {
     file.close();
   }
   rrt_star_solver.output_rrt_json("rrt_star");
+
+  delete obs1, obs2, obs3, obs4;
 }
