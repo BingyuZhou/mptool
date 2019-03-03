@@ -1,6 +1,11 @@
 #pragma once
 
+#include <boost/math/interpolators/cubic_b_spline.hpp>
+#include "Eigen/Core"
+#include "obs.h"
+
 #include <stdint.h>
+#include <vector>
 
 namespace cmpc {
 
@@ -10,6 +15,7 @@ struct opt_set {
   uint16_t horizon;     ///< MPC Horizon
   uint16_t state_dim;   ///< State dimention
   uint16_t action_dim;  ///< Action dimention
+  uint16_t state_action_dim;
 
   float length;                                    ///< Car length
   float width;                                     ///< Car width

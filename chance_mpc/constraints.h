@@ -11,17 +11,17 @@ namespace cmpc {
 /// Constraints
 class constraint {
   /// Equality constraints i.e. state dynamics
-  static Eigen::VectorXf single_equality_const(car* ego_veh,
+  static Eigen::VectorXd single_equality_const(car* ego_veh,
                                                const double& steer_v,
                                                const double& throttle,
-                                               const float& sample_t);
+                                               const double& sample_t);
 
   /// Brief Collision avoidance. Ego-veh vs one obstacle
   static Eigen::VectorXd collision_avoidance(
       const Eigen::MatrixXd& repr_ego, const double& ego_radius,
       const uint16_t& num_policies, const std::vector<pose>& obs_pred,
       const float& obs_length, const float& obs_width,
-      const array<double, 2>& uncertainty);
+      const std::array<double, 2>& uncertainty);
 
  public:
   constraint();
@@ -32,8 +32,8 @@ class constraint {
                             double& ego_radius);
 
   /// Road boundary
-  static double* road_boundary(const float& e_contour, const double& road_ub,
-                               const double& road_lb);
+  static void road_boundary(const float& e_contour, const double& road_ub,
+                            const double& road_lb, double* result);
 
   /// Yaw regulation
   static double yaw_regulate(const double& v, const double& length,

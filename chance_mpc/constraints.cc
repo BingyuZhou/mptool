@@ -9,10 +9,10 @@ const uint16_t num_ego_circles = 4;
 namespace cmpc {
 constraint::constraint(){};
 
-Eigen::VectorXf constraint::single_equality_const(car* ego_veh,
+Eigen::VectorXd constraint::single_equality_const(car* ego_veh,
                                                   const double& steer_v,
                                                   const double& throttle,
-                                                  const float& sample_t) {
+                                                  const double& sample_t) {
   ego_veh->step(steer_v, throttle, sample_t);
   return ego_veh->get_state();
 }
@@ -68,13 +68,10 @@ Eigen::VectorXd constraint::collision_avoidance(
   return result;
 };
 
-double* constraint::road_boundary(const float& e_contour, const double& road_ub,
-                                  const double& road_lb) {
-  double result[2];
+void constraint::road_boundary(const float& e_contour, const double& road_ub,
+                               const double& road_lb, double* result) {
   result[0] = e_contour - road_ub;
   result[1] = road_lb - e_contour;
-
-  return result;
 }
 
 double constraint::yaw_regulate(const double& v, const double& length,

@@ -7,22 +7,22 @@
 
 const float EPS = 1e-4;
 
-Eigen::VectorXf ode(const Eigen::VectorXf& x,
-                    const std::array<float, 2> actions) {
+Eigen::VectorXd ode(const Eigen::VectorXd& x,
+                    const std::array<double, 2> actions) {
   return 3 * x;
 };
 
 GTEST("test_rk4") {
   SHOULD("Integral for simple function") {
-    Eigen::VectorXf x0(2);
-    x0(0) = 1.0f;
-    x0(1) = 2.0f;
+    Eigen::VectorXd x0(2);
+    x0(0) = 1.0;
+    x0(1) = 2.0;
 
-    Eigen::VectorXf real = x0 * exp(3 * 0.1f);
+    Eigen::VectorXd real = x0 * exp(3 * 0.1);
 
-    std::array<float, 2> actions{0.0f, 0.0f};
+    std::array<double, 2> actions{0.0, 0.0};
 
-    rk4(ode, 0.1f, 0.1f, x0, actions);
+    rk4(ode, 0.1, 0.1, x0, actions);
 
     EXPECT_LE(abs(x0(0) - real(0)), EPS);
     EXPECT_LE(abs(x0(1) - real(1)), EPS);

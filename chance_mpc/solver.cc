@@ -56,8 +56,9 @@ void set_inequality_const(unsigned m, double* result, unsigned n,
     obj::error(current_x, opt_data->ref_path_x, opt_data->ref_path_y, e_contour,
                e_lag);
 
-    double* road_result = constraint::road_boundary(
-        e_contour, opt_data->road_ub, opt_data->road_lb);
+    double road_result[2];
+    constraint::road_boundary(e_contour, opt_data->road_ub, opt_data->road_lb,
+                              road_result);
     memcpy(result + tail, road_result, sizeof road_result);
     tail += 2;
   }
