@@ -1,4 +1,4 @@
-#include "car/base_car.h"
+#include "base_car.h"
 
 #include <GUnit.h>
 #include <iostream>
@@ -19,5 +19,4 @@ GTEST("TEST_BASE_CAR") {
     EXPECT_LE(abs(obj->get_pose().heading - 0.0111), EPS);
     EXPECT_FLOAT_EQ(obj->get_acc(), 1);
   }
-
 }

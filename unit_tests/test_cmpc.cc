@@ -1,12 +1,17 @@
-#include "car/base_car.h"
+#include "Clothoid.hh"
+#include "base_car.h"
+#include "boost/math/interpolators/barycentric_rational.hpp"
 #include "solver.h"
 
 #include <GUnit.h>
 #include <iostream>
+#include <numeric>
 
 GTEST("test_cmpc") {
   using namespace std;
   using namespace cmpc;
+  using namespace G2lib;
+
   opt_set* opt_data = new opt_set;
 
   opt_data->action_dim = 2;
@@ -49,23 +54,54 @@ GTEST("test_cmpc") {
 
     EXPECT_FLOAT_EQ(ref_y(0.0f), -2.0f);
     EXPECT_FLOAT_EQ(ref_y(15.0f), 4.0f);
-
-    std::ofstream file;
-    file.open("ref_path.csv");
-
-    for (double s = 0; s < 50.0; s += 1.0)
-      file << ref_x(s) << "\t" << ref_y(s) << "\n";
-
-    file.close();
   }
 
   SHOULD("cmpc_planning") {
-    vector<float> x_way{27.0, 27.0, 17.0, -400.0};
-    vector<float> y_way{-12.2, -2.0, 8.0, 8.0};
-    boost::math::cubic_b_spline<float> ref_x(x_way.data(), x_way.size(), 0.0f,
-                                             5.0f);
-    boost::math::cubic_b_spline<float> ref_y(y_way.data(), y_way.size(), 0.0f,
-                                             5.0f);
-    opt_data->ref_path_x
+    int num_waypoints = 4;
+    vector<float> x_way{27.0, 27.0, 17.0, -100.0};
+    vector<float> y_way{-50.0, -2.0, 8.0, 8.0};
+    vector<float> theta_way{M_PI_2, M_PI_2, M_PI, M_PI};
+
+    ClothoidCurve* clothoid = new ClothoidCurve();
+
+    int num_sample_seg = 20;
+    vector<double> sample_x{x_way[0]}, sample_y{y_way[0]}, sample_s{0.0};
+    std::ofstream file;
+    file.open("clothoid.csv");
+    for (int i = 0; i < num_waypoints - 1; ++i) {
+      clothoid->build_G1(x_way[i], y_way[i], theta_way[i], x_way[i + 1],
+                         y_way[i + 1], theta_way[i + 1]);
+
+      vector<double> sample_x_i(num_sample_seg), sample_y_i(num_sample_seg);
+      clothoid->pointsOnClothoid(x_way[i], y_way[i], theta_way[i],
+                                 clothoid->kappaBegin(), clothoid->dkappa(),
+                                 clothoid->length(), num_sample_seg, sample_x_i,
+                                 sample_y_i);
+
+      for (int z = 0; z < num_sample_seg; ++z)
+        file << sample_x_i[z] << "\t" << sample_y_i[z] << "\n";
+
+      sample_x.insert(sample_x.end(), sample_x_i.begin(), sample_x_i.end());
+      sample_y.insert(sample_y.end(), sample_y_i.begin(), sample_y_i.end());
+
+      for (int j = 0; j < num_sample_seg; ++j)
+        sample_s.push_back(sample_s.back() +
+                           clothoid->length() / num_sample_seg);
+    }
+    file.close();
+
+    boost::math::barycentric_rational<double> ref_x(
+        sample_s.data(), sample_x.data(), sample_x.size());
+    boost::math::barycentric_rational<double> ref_y(
+        sample_s.data(), sample_y.data(), sample_y.size());
+
+    // Plot
+    // std::ofstream file;
+    file.open("ref_path.csv");
+
+    for (double s = 0; s < sample_s.back(); s += 5.0)
+      file << ref_x(s) << "\t" << ref_y(s) << "\n";
+
+    file.close();
   }
 }

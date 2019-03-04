@@ -1,4 +1,4 @@
-set (libs GUnit util rrt rrt_star car Eigen nlopt cmpc)
+set (libs GUnit util rrt rrt_star car Eigen nlopt cmpc Clothoids)
 
 ADD_GUNIT_TEST(test_kdtree.cpp  ${libs})
 ADD_GUNIT_TEST(test_rrt.cpp ${libs})
@@ -11,4 +11,4 @@ ADD_GUNIT_TEST(test_cmpc.cc ${libs})
 
 enable_testing()
 
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/rrt_star ${CMAKE_SOURCE_DIR}/model )
+include_directories(${CMAKE_SOURCE_DIR}/ext/Clothoids/src)

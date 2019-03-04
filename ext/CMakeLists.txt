@@ -33,6 +33,12 @@ target_include_directories(Eigen INTERFACE
 add_subdirectory(nlopt)
 
 ##########################################################
-# G1fitting
+# Clothoids
 ##########################################################
-add_subdirectory(G1fitting)
+add_subdirectory(Clothoids)
+
+target_include_directories(Clothoids
+ SYSTEM INTERFACE
+ $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Clothoids/src)
+
+

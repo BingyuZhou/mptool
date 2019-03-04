@@ -5,13 +5,11 @@
 [submodule "ext/eigen-git-mirror"]
 	path = ext/eigen-git-mirror
 	url = git@github.com:eigenteam/eigen-git-mirror.git
-[submodule "G1fitting"]
-	path = G1fitting
-	url = git@github.com:ebertolazzi/G1fitting.git
-[submodule "ext/G1fitting"]
-	path = ext/G1fitting
-	url = git@github.com:ebertolazzi/G1fitting.git
+
 [submodule "ext/nlopt"]
 	path = ext/nlopt
 	url = git@github.com:stevengj/nlopt.git
 
+[submodule "ext/Clothoids"]
+	path = ext/Clothoids
+	url = git@github.com:ebertolazzi/Clothoids.git
