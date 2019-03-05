@@ -1,6 +1,6 @@
 #pragma once
 
-#include "boost/math/interpolators/barycentric_rational.hpp"
+#include <boost/math/interpolators/barycentric_rational.hpp>
 
 #include <vector>
 

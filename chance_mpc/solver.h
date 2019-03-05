@@ -1,6 +1,6 @@
 #pragma once
 
-#include <boost/math/interpolators/cubic_b_spline.hpp>
+#include <boost/math/interpolators/barycentric_rational.hpp>
 #include "Eigen/Core"
 #include "obs.h"
 
@@ -17,11 +17,13 @@ struct opt_set {
   uint16_t action_dim;  ///< Action dimention
   uint16_t state_action_dim;
 
-  float length;                                    ///< Car length
-  float width;                                     ///< Car width
-  Eigen::VectorXd weights;                         ///< Weights of objective
-  boost::math::cubic_b_spline<float>* ref_path_x;  ///< Reference path (dis->x)
-  boost::math::cubic_b_spline<float>* ref_path_y;  ///< Reference path (dis->y)
+  float length;             ///< Car length
+  float width;              ///< Car width
+  Eigen::VectorXd weights;  ///< Weights of objective
+  boost::math::barycentric_rational<double>*
+      ref_path_x;  ///< Reference path (dis->x)
+  boost::math::barycentric_rational<double>*
+      ref_path_y;               ///< Reference path (dis->y)
   std::vector<obs*> obstacles;  ///< Obstacles with prediction
   float road_lb;                ///< Road lower boundary
   float road_ub;                ///< Road upper boundary

@@ -17,11 +17,12 @@ addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
+      - sourceline: 'ppa:mhier/libboost-latest'
     packages:
       - gcc-7
       - g++-7
       - cmake
-      - libboost1.65-all-dev
+      - boost1.68
 
 # Specify the compiler version
 env:

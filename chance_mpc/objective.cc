@@ -9,10 +9,11 @@ using namespace Eigen;
 namespace cmpc {
 obj::obj() {}
 
-double obj::step_cost(const Eigen::VectorXd& coeff, const double& t_sample,
-                      const boost::math::cubic_b_spline<float>* ref_path_x,
-                      const boost::math::cubic_b_spline<float>* ref_path_y,
-                      const float& length, const double* x) {
+double obj::step_cost(
+    const Eigen::VectorXd& coeff, const double& t_sample,
+    const boost::math::barycentric_rational<double>* ref_path_x,
+    const boost::math::barycentric_rational<double>* ref_path_y,
+    const float& length, const double* x) {
   VectorXd terms(6);
   obj::error(x, ref_path_x, ref_path_y, terms(0), terms(1));
 
@@ -26,8 +27,8 @@ double obj::step_cost(const Eigen::VectorXd& coeff, const double& t_sample,
 }
 
 void obj::error(const double* x,
-                const boost::math::cubic_b_spline<float>* ref_path_x,
-                const boost::math::cubic_b_spline<float>* ref_path_y,
+                const boost::math::barycentric_rational<double>* ref_path_x,
+                const boost::math::barycentric_rational<double>* ref_path_y,
                 double& e_contour, double& e_lag) {
   float s = x[7];
   float x_ref = (*ref_path_x)(s);

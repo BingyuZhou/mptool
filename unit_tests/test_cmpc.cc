@@ -1,6 +1,8 @@
 #include "Clothoid.hh"
 #include "base_car.h"
 #include "boost/math/interpolators/barycentric_rational.hpp"
+#include "boost/math/interpolators/cubic_b_spline.hpp"
+#include "road_rep.h"
 #include "solver.h"
 
 #include <GUnit.h>
@@ -54,11 +56,13 @@ GTEST("test_cmpc") {
 
     EXPECT_FLOAT_EQ(ref_y(0.0f), -2.0f);
     EXPECT_FLOAT_EQ(ref_y(15.0f), 4.0f);
+  }
 
+  SHOULD("bary_line_representation") {
     int num_waypoints = 4;
-    vector<float> x_way{27.0, 27.0, 17.0, -100.0};
-    vector<float> y_way{-50.0, -2.0, 8.0, 8.0};
-    vector<float> theta_way{M_PI_2, M_PI_2, M_PI, M_PI};
+    vector<double> x_way{27.0, 27.0, 17.0, -100.0};
+    vector<double> y_way{-50.0, -2.0, 8.0, 8.0};
+    vector<double> theta_way{M_PI_2, M_PI_2, M_PI, M_PI};
 
     ClothoidCurve* clothoid = new ClothoidCurve();
 
@@ -103,5 +107,19 @@ GTEST("test_cmpc") {
     delete clothoid;
   }
 
-  SHOULD("cmpc_planning") {}
+  SHOULD("cmpc_planning") {
+    int num_waypoints = 4;
+    vector<double> x_way{27.0, 27.0, 17.0, -100.0};
+    vector<double> y_way{-50.0, -2.0, 8.0, 8.0};
+    vector<double> theta_way{M_PI_2, M_PI_2, M_PI, M_PI};
+
+    road_rep road;
+    boost::math::barycentric_rational<double>*ref_x = nullptr, *ref_y = nullptr;
+    double length;
+    road.build_representation(x_way, y_way, theta_way, 20, ref_x, ref_y,
+                              length);
+
+    opt_data->ref_path_x = ref_x;
+    opt_data->ref_path_y = ref_y;
+  }
 }

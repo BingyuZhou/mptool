@@ -1,4 +1,4 @@
-set (libs GUnit util rrt rrt_star car Eigen nlopt cmpc Clothoids)
+set (libs GUnit util rrt rrt_star car Eigen nlopt cmpc Clothoids road_rep)
 
 ADD_GUNIT_TEST(test_kdtree.cpp  ${libs})
 ADD_GUNIT_TEST(test_rrt.cpp ${libs})
