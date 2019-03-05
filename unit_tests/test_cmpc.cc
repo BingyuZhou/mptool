@@ -22,7 +22,7 @@ GTEST("test_cmpc") {
   opt_data->sample = 0.1;
   opt_data->horizon = 50;
   double lb[8] = {-5.0, -30.0, -500.0, -200.0, -2 * M_PI, -1.0, 0.3, 0.0};
-  double ub[8] = {5.0, 30.0, 500.0, 200.0, 2 * M_PI, 1.0, 16.0, 800.0};
+  double ub[8] = {5.0, 30.0, 500.0, 200.0, 2 * M_PI, 1.0, 16.0, 100.0};
 
   opt_data->lb = lb;
   opt_data->ub = ub;
@@ -114,12 +114,21 @@ GTEST("test_cmpc") {
     vector<double> theta_way{M_PI_2, M_PI_2, M_PI, M_PI};
 
     road_rep road;
-    boost::math::barycentric_rational<double>*ref_x = nullptr, *ref_y = nullptr;
+    vector<boost::math::barycentric_rational<double>*> ref(2);
     double length;
-    road.build_representation(x_way, y_way, theta_way, 20, ref_x, ref_y,
-                              length);
+    road.build_representation(x_way, y_way, theta_way, 20, ref, length);
+    road.plot(ref[0], ref[1], length);
 
-    opt_data->ref_path_x = ref_x;
-    opt_data->ref_path_y = ref_y;
+    opt_data->ref_path_x = ref[0];
+    opt_data->ref_path_y = ref[1];
+
+    opt_data->init_dis = 0;
+    opt_data->init_pose = {x_way[0], y_way[0], theta_way[0]};
+    opt_data->init_steer = 0;
+    opt_data->init_v = 5;
+
+    opt_data->yaw_max = 50;
+
+    double* result = cmpc::solve(opt_data);
   }
 }

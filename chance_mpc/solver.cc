@@ -94,12 +94,12 @@ void set_equality_const(unsigned m, double* result, unsigned n, const double* x,
 }
 
 /// Solve
-void solve(const opt_set* opt_data) {
+double* solve(const opt_set* opt_data) {
   // Number of optimization variables
   const int num_var = opt_data->horizon * opt_data->state_action_dim;
 
   // Optimizer
-  nlopt_opt opt = nlopt_create(nlopt_algorithm::NLOPT_LN_COBYLA, num_var);
+  nlopt_opt opt = nlopt_create(nlopt_algorithm::NLOPT_LD_SLSQP, num_var);
 
   // Vars boundary
   nlopt_set_lower_bounds(opt, opt_data->lb);
@@ -109,10 +109,10 @@ void solve(const opt_set* opt_data) {
   nlopt_set_min_objective(opt, set_objective, (void*)opt_data);
 
   // Equality constrs
-  double tol_eq[opt_data->state_dim * opt_data->horizon] = {1e-8};
+  vector<double> tol_eq(opt_data->state_dim * opt_data->horizon, 1e-8);
   nlopt_result r = nlopt_add_equality_mconstraint(
       opt, opt_data->state_dim * opt_data->horizon, set_equality_const,
-      (void*)opt_data, tol_eq);
+      (void*)opt_data, tol_eq.data());
   if (r < 0) cout << r << endl;
 
   // Inequality constrs
@@ -122,15 +122,15 @@ void solve(const opt_set* opt_data) {
   int num_ineq = opt_data->horizon * (sum_num_policies * num_ego_circles +
                                       num_road_bound + num_yaw_reg);
 
-  double tol_ineq[num_ineq] = {1e-3};
+  vector<double> tol_ineq(num_ineq, 1e-3);
   r = nlopt_add_inequality_mconstraint(opt, num_ineq, set_inequality_const,
-                                       (void*)opt_data, tol_ineq);
+                                       (void*)opt_data, tol_ineq.data());
   if (r < 0) cout << r << endl;
 
   // Optimization
   nlopt_set_force_stop(opt, 300);
 
-  double x[num_var] = {0.0};
+  double* x = new double[num_var];
 
   double minf;
   if (nlopt_optimize(opt, x, &minf) < 0) {
@@ -139,5 +139,7 @@ void solve(const opt_set* opt_data) {
     printf("found minimum cost %g\n", minf);
   }
   nlopt_destroy(opt);
+
+  return x;
 }
 }  // namespace cmpc

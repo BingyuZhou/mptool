@@ -51,6 +51,6 @@ void set_equality_const(unsigned m, double* result, unsigned n, const double* x,
                         double* grad, void* data);
 
 /// Solve
-void solve(const opt_set* opt_data);
+double* solve(const opt_set* opt_data);
 
 };  // namespace cmpc

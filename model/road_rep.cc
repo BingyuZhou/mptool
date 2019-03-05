@@ -10,8 +10,7 @@ road_rep::road_rep() {}
 void road_rep::build_representation(
     const vector<double>& x_way, const vector<double>& y_way,
     const vector<double>& theta_way, int num_sample_seg,
-    boost::math::barycentric_rational<double>* ref_x,
-    boost::math::barycentric_rational<double>* ref_y, double& s_max) {
+    vector<boost::math::barycentric_rational<double>*>& ref, double& s_max) {
   int num_waypoints = x_way.size();
   G2lib::ClothoidCurve* clothoid = new G2lib::ClothoidCurve();
 
@@ -34,10 +33,12 @@ void road_rep::build_representation(
       sample_s.push_back(sample_s.back() + clothoid->length() / num_sample_seg);
   }
 
-  ref_x = new boost::math::barycentric_rational<double>(
+  auto ref_x = new boost::math::barycentric_rational<double>(
       sample_s.data(), sample_x.data(), sample_x.size());
-  ref_y = new boost::math::barycentric_rational<double>(
+  auto ref_y = new boost::math::barycentric_rational<double>(
       sample_s.data(), sample_y.data(), sample_y.size());
+  ref[0] = ref_x;
+  ref[1] = ref_y;
   s_max = sample_s.back();
 }
 
@@ -45,7 +46,7 @@ void road_rep::plot(const boost::math::barycentric_rational<double>* ref_x,
                     const boost::math::barycentric_rational<double>* ref_y,
                     const double& s_max) {
   std::ofstream file;
-  file.open("ref_path.csv");
+  file.open("cmpc_path.csv");
 
   for (double s = 0; s < s_max; s += s_max / 80)
     file << (*ref_x)(s) << "\t" << (*ref_y)(s) << "\n";
