@@ -11,3 +11,6 @@
 	url = git@github.com:stevengj/nlopt.git
 
 
+[submodule "clothoids"]
+	path = ext/Clothoids
+	url = git@github.com:BingyuZhou/Clothoids.git
