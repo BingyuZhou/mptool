@@ -10,6 +10,8 @@
 	path = ext/nlopt
 	url = git@github.com:stevengj/nlopt.git
 
+
+
 [submodule "ext/Clothoids"]
 	path = ext/Clothoids
-	url = git@github.com:ebertolazzi/Clothoids.git
+	url = git@github.com:BingyuZhou/Clothoids.git
