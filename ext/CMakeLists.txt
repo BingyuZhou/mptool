@@ -37,8 +37,6 @@ add_subdirectory(nlopt)
 ##########################################################
 add_subdirectory(Clothoids)
 
-target_include_directories(Clothoids
- SYSTEM INTERFACE
- $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Clothoids/src)
+
 
 
