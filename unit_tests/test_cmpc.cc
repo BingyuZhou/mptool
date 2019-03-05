@@ -54,9 +54,7 @@ GTEST("test_cmpc") {
 
     EXPECT_FLOAT_EQ(ref_y(0.0f), -2.0f);
     EXPECT_FLOAT_EQ(ref_y(15.0f), 4.0f);
-  }
 
-  SHOULD("cmpc_planning") {
     int num_waypoints = 4;
     vector<float> x_way{27.0, 27.0, 17.0, -100.0};
     vector<float> y_way{-50.0, -2.0, 8.0, 8.0};
@@ -95,13 +93,15 @@ GTEST("test_cmpc") {
     boost::math::barycentric_rational<double> ref_y(
         sample_s.data(), sample_y.data(), sample_y.size());
 
-    // Plot
-    // std::ofstream file;
     file.open("ref_path.csv");
 
     for (double s = 0; s < sample_s.back(); s += 5.0)
       file << ref_x(s) << "\t" << ref_y(s) << "\n";
 
     file.close();
+
+    delete clothoid;
   }
+
+  SHOULD("cmpc_planning") {}
 }
