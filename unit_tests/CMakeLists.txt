@@ -11,4 +11,3 @@ ADD_GUNIT_TEST(test_cmpc.cc ${libs})
 
 enable_testing()
 
-include_directories(${CMAKE_SOURCE_DIR}/ext/Clothoids/src)
