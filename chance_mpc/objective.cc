@@ -17,11 +17,15 @@ double obj::step_cost(
   VectorXd terms(6);
   obj::error(x, ref_path_x, ref_path_y, terms(0), terms(1));
 
-  terms(2) = x[6] * t_sample;  // progress
-  terms(3) = x[0];             // action
-  terms(4) = x[1];             // action
+  terms(0) *= terms(0);
+  terms(1) *= terms(1);
 
-  terms(5) = x[6] / length * tan(x[5]);  // yaw rate
+  terms(2) = x[6] * t_sample;  // progress
+  terms(3) = x[0] * x[0];      // action
+  terms(4) = x[1] * x[1];      // action
+
+  double theta_d = x[6] / length * tan(x[5]);
+  terms(5) = theta_d * theta_d;  // yaw rate
 
   return coeff.dot(terms);
 }

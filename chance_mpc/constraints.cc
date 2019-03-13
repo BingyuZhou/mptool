@@ -80,15 +80,14 @@ double constraint::yaw_regulate(const double& v, const double& length,
   return abs(v / length * tan(steer_angle)) - yaw_max;
 }
 
-void constraint::equality_const_step(
-    const uint16_t& action_dim, const uint16_t& state_dim, const float& length,
-    const float& width, const pose& init_pose, const double& init_v,
-    const double& init_steer, const double& init_dis, car* car_sim,
-    const float& sample, const double* x, double* result) {
+void constraint::equality_const_step(const uint16_t& action_dim,
+                                     const uint16_t& state_dim, car* car_sim,
+                                     const float& sample, const double* x,
+                                     vector<double>* result) {
   uint16_t state_action_dim = action_dim + state_dim;
 
   auto new_state = single_equality_const(car_sim, x[6], x[7], sample);
-  for (int j = 0; j < state_dim; ++j) result[j] = new_state(j) - x[j];
+  for (int j = 0; j < state_dim; ++j) (*result)[j] = new_state(j) - x[j];
 
 };  // namespace cmpc
 

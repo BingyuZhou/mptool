@@ -23,6 +23,7 @@ double set_objective(unsigned n, const double* x, double* grad, void* data) {
                        opt_data->ref_path_x, opt_data->ref_path_y,
                        opt_data->length, x + i * opt_data->state_action_dim);
   }
+  cout << sum_cost << endl;
   return sum_cost;
 }
 
@@ -37,16 +38,18 @@ void set_inequality_const(unsigned m, double* result, unsigned n,
   for (auto o : opt_data->obstacles) sum_num_policies += o->get_num_policies();
   VectorXd col_result(sum_num_policies);
 
-  for (int i = 0; i < opt_data->horizon; ++i) {
-    const double* current_x = x + i * opt_data->state_action_dim;
-    // representation of ego-veh
-    pose ego_pose = {current_x[2], current_x[3], current_x[4]};
+  if (sum_num_policies > 0) {
+    for (int i = 0; i < opt_data->horizon; ++i) {
+      const double* current_x = x + i * opt_data->state_action_dim;
+      // representation of ego-veh
+      pose ego_pose = {current_x[2], current_x[3], current_x[4]};
 
-    constraint::collision_const_step(
-        i, ego_pose, opt_data->length, opt_data->width, opt_data->action_dim,
-        opt_data->state_dim, opt_data->obstacles, col_result);
-    memcpy(result + tail, col_result.data(), sizeof col_result);
-    tail += sum_num_policies;
+      constraint::collision_const_step(
+          i, ego_pose, opt_data->length, opt_data->width, opt_data->action_dim,
+          opt_data->state_dim, opt_data->obstacles, col_result);
+      memcpy(result + tail, col_result.data(), sizeof col_result);
+      tail += sum_num_policies;
+    }
   }
 
   // Road boundary
@@ -80,17 +83,19 @@ void set_equality_const(unsigned m, double* result, unsigned n, const double* x,
                         double* grad, void* data) {
   opt_set* opt_data = reinterpret_cast<opt_set*>(data);
   car* car_sim = new car(opt_data->length, opt_data->width);
+  car_sim->set_initial_state(opt_data->init_pose, opt_data->init_v,
+                             opt_data->init_steer, opt_data->init_dis);
 
-  double* eq_result = new double[opt_data->state_dim];
+  auto eq_result = new vector<double>(opt_data->state_dim);
   for (int i = 0; i < opt_data->horizon; ++i) {
     constraint::equality_const_step(
-        opt_data->action_dim, opt_data->state_dim, opt_data->length,
-        opt_data->width, opt_data->init_pose, opt_data->init_v,
-        opt_data->init_steer, opt_data->init_dis, car_sim, opt_data->sample,
+        opt_data->action_dim, opt_data->state_dim, car_sim, opt_data->sample,
         x + i * opt_data->state_action_dim, eq_result);
-    memcpy(result + i * opt_data->state_dim, eq_result, sizeof eq_result);
+    memcpy(result + i * opt_data->state_dim, eq_result->data(),
+           sizeof(double) * eq_result->size());
   }
-  delete[] eq_result;
+  delete eq_result;
+  delete car_sim;
 }
 
 /// Solve
@@ -99,7 +104,7 @@ double* solve(const opt_set* opt_data) {
   const int num_var = opt_data->horizon * opt_data->state_action_dim;
 
   // Optimizer
-  nlopt_opt opt = nlopt_create(nlopt_algorithm::NLOPT_LD_SLSQP, num_var);
+  nlopt_opt opt = nlopt_create(nlopt_algorithm::NLOPT_LN_AUGLAG, num_var);
 
   // Vars boundary
   nlopt_set_lower_bounds(opt, opt_data->lb);
@@ -128,9 +133,16 @@ double* solve(const opt_set* opt_data) {
   if (r < 0) cout << r << endl;
 
   // Optimization
-  nlopt_set_force_stop(opt, 300);
+  nlopt_set_maxeval(opt, 1000);
 
+  // Initial guess
   double* x = new double[num_var];
+
+  for (int i = 0; i < opt_data->horizon; ++i) {
+    x[i * opt_data->state_action_dim + 2] = opt_data->init_pose.x;
+    x[i * opt_data->state_action_dim + 3] = opt_data->init_pose.y;
+    x[i * opt_data->state_action_dim + 4] = opt_data->init_pose.heading;
+  }
 
   double minf;
   if (nlopt_optimize(opt, x, &minf) < 0) {

@@ -40,11 +40,10 @@ class constraint {
                              const double& steer_angle, const double& yaw_max);
 
   /// Whole bunch of equality constraints (one step)
-  static void equality_const_step(
-      const uint16_t& action_dim, const uint16_t& state_dim,
-      const float& length, const float& width, const pose& init_pose,
-      const double& init_v, const double& init_steer, const double& init_dis,
-      car* car_sim, const float& sample, const double* x, double* result);
+  static void equality_const_step(const uint16_t& action_dim,
+                                  const uint16_t& state_dim, car* car_sim,
+                                  const float& sample, const double* x,
+                                  std::vector<double>* result);
 
   /// Whole bunch of inequality cinstraints (one step)
   static void collision_const_step(const uint16_t& t, const pose& ego_pose,

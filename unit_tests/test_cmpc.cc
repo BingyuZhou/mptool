@@ -6,6 +6,7 @@
 #include "solver.h"
 
 #include <GUnit.h>
+#include <fstream>
 #include <iostream>
 #include <numeric>
 
@@ -21,11 +22,16 @@ GTEST("test_cmpc") {
   opt_data->state_action_dim = 8;
   opt_data->sample = 0.1;
   opt_data->horizon = 50;
-  double lb[8] = {-5.0, -30.0, -500.0, -200.0, -2 * M_PI, -1.0, 0.3, 0.0};
+  double lb[8] = {-5.0, -30.0, -500.0, -200.0, -2 * M_PI, -1.0, 0.0, 0.0};
   double ub[8] = {5.0, 30.0, 500.0, 200.0, 2 * M_PI, 1.0, 16.0, 100.0};
-
-  opt_data->lb = lb;
-  opt_data->ub = ub;
+  vector<double> lb_vec, ub_vec;
+  for (int i = 0; i < opt_data->horizon; ++i) {
+    lb_vec.insert(lb_vec.end(), lb, lb + 8);
+    ub_vec.insert(ub_vec.end(), ub, ub + 8);
+  }
+  assert(lb_vec.size() == opt_data->state_action_dim * opt_data->horizon);
+  opt_data->lb = lb_vec.data();
+  opt_data->ub = ub_vec.data();
 
   opt_data->road_lb = sqrt(2) - 2;
   opt_data->road_ub = 5 - sqrt(2);
@@ -130,5 +136,17 @@ GTEST("test_cmpc") {
     opt_data->yaw_max = 50;
 
     double* result = cmpc::solve(opt_data);
+
+    ofstream f;
+    f.open("traj.csv");
+
+    for (int i = 0; i < opt_data->horizon; ++i) {
+      int slice = i * opt_data->state_action_dim;
+      f << "throttle: " << result[slice] << " v_steer: " << result[slice + 1]
+        << " x: " << result[slice + 2] << " y: " << result[slice + 3]
+        << " theta: " << result[slice + 4]
+        << " steer angle: " << result[slice + 5] << " v: " << result[slice + 6]
+        << " distance: " << result[slice + 7] << endl;
+    }
   }
 }
