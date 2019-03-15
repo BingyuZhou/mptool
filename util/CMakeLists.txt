@@ -2,7 +2,8 @@ ADD_LIBRARY(util STATIC
     utils.h
     kdtree.h
     obstacle_sym.h
-    rk4.h)
+    rk4.h
+    logger)
 
 target_include_directories(util
     SYSTEM INTERFACE

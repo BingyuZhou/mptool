@@ -5,7 +5,9 @@
 
 #include <cassert>
 #include <cmath>
+#include <fstream>
 #include <json.hpp>
+#include <string>
 
 template <class T>
 float euclidian_dis(const T &n1, const T &n2) {

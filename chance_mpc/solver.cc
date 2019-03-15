@@ -1,5 +1,6 @@
 #include "solver.h"
 #include "constraints.h"
+#include "logger.h"
 #include "nlopt.h"
 #include "objective.h"
 
@@ -12,6 +13,8 @@ const uint16_t num_ego_circles = 4;
 const uint16_t num_road_bound = 2;
 const uint16_t num_yaw_reg = 1;
 
+logger logging("~/tmp/");
+
 namespace cmpc {
 
 double set_objective(unsigned n, const double* x, double* grad, void* data) {
@@ -23,7 +26,10 @@ double set_objective(unsigned n, const double* x, double* grad, void* data) {
                        opt_data->ref_path_x, opt_data->ref_path_y,
                        opt_data->length, x + i * opt_data->state_action_dim);
   }
-  cout << sum_cost << endl;
+  logging.add_cost(sum_cost);
+  logging.add_x(x);
+  logging.dump();
+  logging.print();
   return sum_cost;
 }
 
@@ -74,6 +80,13 @@ void set_inequality_const(unsigned m, double* result, unsigned n,
     tail += 1;
   }
 
+  // log cost
+  double cost = 0;
+  for (int i = 0; i < tail; ++i) {
+    if (result[i] > 0) cost += result[i];
+  }
+  logging.add_ineq(cost);
+
   // Check size of inequality consts
   assert(m == tail);
 }
@@ -94,6 +107,12 @@ void set_equality_const(unsigned m, double* result, unsigned n, const double* x,
     memcpy(result + i * opt_data->state_dim, eq_result->data(),
            sizeof(double) * eq_result->size());
   }
+  // log cost
+  double cost = 0;
+  for (int i = 0; i < opt_data->horizon * opt_data->state_dim; ++i) {
+    cost += result[i];
+  }
+  logging.add_eq(cost);
   delete eq_result;
   delete car_sim;
 }
@@ -104,7 +123,7 @@ double* solve(const opt_set* opt_data) {
   const int num_var = opt_data->horizon * opt_data->state_action_dim;
 
   // Optimizer
-  nlopt_opt opt = nlopt_create(nlopt_algorithm::NLOPT_LN_AUGLAG, num_var);
+  nlopt_opt opt = nlopt_create(nlopt_algorithm::NLOPT_LN_COBYLA, num_var);
 
   // Vars boundary
   nlopt_set_lower_bounds(opt, opt_data->lb);
@@ -114,7 +133,7 @@ double* solve(const opt_set* opt_data) {
   nlopt_set_min_objective(opt, set_objective, (void*)opt_data);
 
   // Equality constrs
-  vector<double> tol_eq(opt_data->state_dim * opt_data->horizon, 1e-8);
+  vector<double> tol_eq(opt_data->state_dim * opt_data->horizon, 1e-3);
   nlopt_result r = nlopt_add_equality_mconstraint(
       opt, opt_data->state_dim * opt_data->horizon, set_equality_const,
       (void*)opt_data, tol_eq.data());
@@ -151,6 +170,7 @@ double* solve(const opt_set* opt_data) {
     printf("found minimum cost %g\n", minf);
   }
   nlopt_destroy(opt);
+  logging.~logger();
 
   return x;
 }

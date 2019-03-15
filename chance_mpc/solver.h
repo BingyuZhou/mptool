@@ -1,5 +1,9 @@
 #pragma once
 
+/** Chance constraint MPC
+ * var = [steer_vel, throttle, x, y, theta, steer_angle, v, distance]
+ */
+
 #include <boost/math/interpolators/barycentric_rational.hpp>
 #include "Eigen/Core"
 #include "obs.h"

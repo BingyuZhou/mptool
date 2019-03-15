@@ -86,8 +86,9 @@ void constraint::equality_const_step(const uint16_t& action_dim,
                                      vector<double>* result) {
   uint16_t state_action_dim = action_dim + state_dim;
 
-  auto new_state = single_equality_const(car_sim, x[6], x[7], sample);
-  for (int j = 0; j < state_dim; ++j) (*result)[j] = new_state(j) - x[j];
+  auto new_state = single_equality_const(car_sim, x[0], x[1], sample);
+  double s = new_state(5);
+  for (int j = 0; j < state_dim; ++j) (*result)[j] = new_state(j) - x[j + 2];
 
 };  // namespace cmpc
 
