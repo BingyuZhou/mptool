@@ -3,6 +3,7 @@
 /** Logger
  * logger function specifically for optimization
  */
+#include <boost/format.hpp>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -10,15 +11,15 @@
 class logger {
  public:
   logger() {}
-  ~logger() { m_out.close(); }
+  ~logger() {
+    m_perf.close();
+    m_result.close();
+  }
   logger(const std::string &path) : m_path(path) {
     m_perf.open(path + "log.txt");
-    m_perf << "Step\t"
-           << "Cost\t"
-           << "Inequality violation\t"
-           << "Equality violation\t"
-           << "State\t"
-           << "Action\n";
+    m_perf << boost::format("%10d | %10.2f | %10.2f | %10.2f") % "Step" %
+                  "Cost" % "Inequality" % "Equaity"
+           << std::endl;
     m_result.open(path + "result.txt");
   }
 
@@ -27,15 +28,23 @@ class logger {
   void add_eq(double cost) { m_eq = cost; }
   void add_x(const double *x) { m_x = x; }
   void dump() {
-    m_perf << m_count << "\t" << m_cost << "\t" << m_ineq << "\t" << m_eq
+    m_perf << boost::format("%10d | %10.2f | %10.2f | %10.2f") % m_count %
+                  m_cost % m_ineq % m_eq
            << std::endl;
-    ++m_count;
-    for (int i; i < m_horizon; ++i) {
-      m_result << m_x[i] << "\t" << m_x[i + 1] << "\t" << m_x[i + 2] << "\t"
-               << m_x[i + 3] << "\t" << m_x[i + 4] << "\t" << m_x[i + 5] << "\t"
-               << m_x[i + 6] << "\t" << m_x[i + 7] << std::endl;
+    m_result << "--------------------------" << m_count
+             << "-----------------------" << std::endl;
+    for (int i = 0; i < m_horizon; ++i) {
+      m_result << boost::format(
+                      "%10.2f | %10.2f | %10.2f | %10.2f | %10.2f | %10.2f | "
+                      "%10.2f | %10.2f") %
+                      m_x[i * m_s_a_num] % m_x[i * m_s_a_num + 1] %
+                      m_x[i * m_s_a_num + 2] % m_x[i * m_s_a_num + 3] %
+                      m_x[i * m_s_a_num + 4] % m_x[i * m_s_a_num + 5] %
+                      m_x[i * m_s_a_num + 6] % m_x[i * m_s_a_num + 7]
+               << std::endl;
     }
-    m_result << "--------------------------" << std::endl;
+
+    ++m_count;
   }
   void print() {
     std::cout << "---------------------------" << std::endl;
@@ -48,11 +57,16 @@ class logger {
               << "theta: " << m_x[4] << std::endl;
   }
 
+  void set_size(int horizon, int state_action_num) {
+    m_horizon = horizon;
+    m_s_a_num = state_action_num;
+  }
+
  private:
   std::string m_path;
   std::ofstream m_perf, m_result;
   double m_cost, m_ineq, m_eq;
   const double *m_x;
   int m_count = 0;
-  int m_horizon;
+  int m_horizon, m_s_a_num;
 };

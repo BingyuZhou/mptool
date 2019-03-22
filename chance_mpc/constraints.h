@@ -13,8 +13,7 @@ class constraint {
   /// Equality constraints i.e. state dynamics
   static Eigen::VectorXd single_equality_const(car* ego_veh,
                                                const double& steer_v,
-                                               const double& throttle,
-                                               const double& sample_t);
+                                               const double& throttle);
 
   /// Brief Collision avoidance. Ego-veh vs one obstacle
   static Eigen::VectorXd collision_avoidance(
@@ -42,8 +41,7 @@ class constraint {
   /// Whole bunch of equality constraints (one step)
   static void equality_const_step(const uint16_t& action_dim,
                                   const uint16_t& state_dim, car* car_sim,
-                                  const float& sample, const double* x,
-                                  std::vector<double>* result);
+                                  const double* x, std::vector<double>* result);
 
   /// Whole bunch of inequality cinstraints (one step)
   static void collision_const_step(const uint16_t& t, const pose& ego_pose,

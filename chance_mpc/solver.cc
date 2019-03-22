@@ -13,7 +13,7 @@ const uint16_t num_ego_circles = 4;
 const uint16_t num_road_bound = 2;
 const uint16_t num_yaw_reg = 1;
 
-logger logging("~/tmp/");
+logger logging("/tmp/");
 
 namespace cmpc {
 
@@ -95,15 +95,15 @@ void set_inequality_const(unsigned m, double* result, unsigned n,
 void set_equality_const(unsigned m, double* result, unsigned n, const double* x,
                         double* grad, void* data) {
   opt_set* opt_data = reinterpret_cast<opt_set*>(data);
-  car* car_sim = new car(opt_data->length, opt_data->width);
+  car* car_sim = new car(opt_data->length, opt_data->width, opt_data->sample);
   car_sim->set_initial_state(opt_data->init_pose, opt_data->init_v,
                              opt_data->init_steer, opt_data->init_dis);
 
   auto eq_result = new vector<double>(opt_data->state_dim);
   for (int i = 0; i < opt_data->horizon; ++i) {
-    constraint::equality_const_step(
-        opt_data->action_dim, opt_data->state_dim, car_sim, opt_data->sample,
-        x + i * opt_data->state_action_dim, eq_result);
+    constraint::equality_const_step(opt_data->action_dim, opt_data->state_dim,
+                                    car_sim, x + i * opt_data->state_action_dim,
+                                    eq_result);
     memcpy(result + i * opt_data->state_dim, eq_result->data(),
            sizeof(double) * eq_result->size());
   }
@@ -119,11 +119,13 @@ void set_equality_const(unsigned m, double* result, unsigned n, const double* x,
 
 /// Solve
 double* solve(const opt_set* opt_data) {
+  logging.set_size(opt_data->horizon, opt_data->state_action_dim);
+
   // Number of optimization variables
   const int num_var = opt_data->horizon * opt_data->state_action_dim;
 
   // Optimizer
-  nlopt_opt opt = nlopt_create(nlopt_algorithm::NLOPT_LN_COBYLA, num_var);
+  nlopt_opt opt = nlopt_create(nlopt_algorithm::NLOPT_LN_AUGLAG_EQ, num_var);
 
   // Vars boundary
   nlopt_set_lower_bounds(opt, opt_data->lb);
@@ -152,7 +154,7 @@ double* solve(const opt_set* opt_data) {
   if (r < 0) cout << r << endl;
 
   // Optimization
-  nlopt_set_maxeval(opt, 1000);
+  nlopt_set_maxeval(opt, 500);
 
   // Initial guess
   double* x = new double[num_var];

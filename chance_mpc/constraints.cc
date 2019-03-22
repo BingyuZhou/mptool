@@ -11,9 +11,8 @@ constraint::constraint(){};
 
 Eigen::VectorXd constraint::single_equality_const(car* ego_veh,
                                                   const double& steer_v,
-                                                  const double& throttle,
-                                                  const double& sample_t) {
-  ego_veh->step(steer_v, throttle, sample_t);
+                                                  const double& throttle) {
+  ego_veh->step(steer_v, throttle);
   return ego_veh->get_state();
 }
 
@@ -82,12 +81,10 @@ double constraint::yaw_regulate(const double& v, const double& length,
 
 void constraint::equality_const_step(const uint16_t& action_dim,
                                      const uint16_t& state_dim, car* car_sim,
-                                     const float& sample, const double* x,
-                                     vector<double>* result) {
+                                     const double* x, vector<double>* result) {
   uint16_t state_action_dim = action_dim + state_dim;
 
-  auto new_state = single_equality_const(car_sim, x[0], x[1], sample);
-  double s = new_state(5);
+  auto new_state = single_equality_const(car_sim, x[0], x[1]);
   for (int j = 0; j < state_dim; ++j) (*result)[j] = new_state(j) - x[j + 2];
 
 };  // namespace cmpc

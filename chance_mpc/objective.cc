@@ -46,7 +46,7 @@ void obj::error(const double* x,
   float sin_longit = dy_ref / tangent;
 
   e_contour = sin_longit * (x[2] - x_ref) - cos_longit * (x[3] - y_ref);
-  e_lag = cos_longit * (x[2] - x_ref) + sin_longit * (x[3] - x_ref);
+  e_lag = cos_longit * (x[2] - x_ref) + sin_longit * (x[3] - y_ref);
 }
 
 }  // namespace cmpc

@@ -8,10 +8,10 @@
  *
  * Solve ode: x_dot = f(x, u)
  */
-void rk4(const std::function<Eigen::VectorXd(Eigen::VectorXd,
-                                             std::array<double, 2>)>& ode_fun,
+void rk4(const std::function<Eigen::VectorXd(Eigen::VectorXd, Eigen::VectorXd)>&
+             ode_fun,
          const double& delta_t, const double& t, Eigen::VectorXd& state,
-         const std::array<double, 2>& actions) {
+         const Eigen::VectorXd& actions) {
   for (int16_t i = t / delta_t; i > 0; --i) {
     Eigen::VectorXd k1 = delta_t * ode_fun(state, actions);
     Eigen::VectorXd k2 = delta_t * ode_fun(state + 0.5 * k1, actions);
