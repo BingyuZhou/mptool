@@ -38,7 +38,7 @@ struct opt_set {
   double init_dis;
 
   double yaw_max;  ///< Max yaw rate
-  double* lb;
+  double* lb;      ///< steer_v, throttle, x, y, theta, delta, v, dis
   double* ub;
 };
 

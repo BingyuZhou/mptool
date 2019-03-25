@@ -26,6 +26,9 @@ double set_objective(unsigned n, const double* x, double* grad, void* data) {
                        opt_data->ref_path_x, opt_data->ref_path_y,
                        opt_data->length, x + i * opt_data->state_action_dim);
   }
+  if (grad) {
+  }
+  // logging
   logging.add_cost(sum_cost);
   logging.add_x(x);
   logging.dump();
@@ -106,6 +109,26 @@ void set_equality_const(unsigned m, double* result, unsigned n, const double* x,
                                     eq_result);
     memcpy(result + i * opt_data->state_dim, eq_result->data(),
            sizeof(double) * eq_result->size());
+    // update gradient
+    // gradient range: state_dim * x.size()
+    // gradient order: \part c_i / \part x_j := grad[i*n+j]
+    if (grad) {
+      if (i > 0) {
+        const VectorXd x0 = Map<const VectorXd>(
+            x + (i - 1) * opt_data->state_action_dim + opt_data->action_dim,
+            opt_data->state_dim);
+        MatrixXd jacob = car_sim->jacob(x0);
+        for (int j = 0; j < jacob.rows(); ++j) {
+          double* slice = grad + i * n * opt_data->state_dim + j * n +
+                          (i - 1) * opt_data->state_action_dim;
+          memcpy(slice, jacob.row(j).data(), sizeof(double) * jacob.cols());
+        }
+      }
+
+      for (int j = 0; j < opt_data->state_dim; ++j)
+        grad[i * n + opt_data->action_dim + j * (opt_data->state_dim + 1)] =
+            -1.0;
+    }
   }
   // log cost
   double cost = 0;

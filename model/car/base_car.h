@@ -31,17 +31,6 @@ class car {
   Eigen::VectorXd step(const Eigen::VectorXd& state,
                        const Eigen::VectorXd& actions);
 
-  // void jacob_theta(const Eigen::VectorXd& state, Eigen::VectorXd& jacobin,
-  //                  const double /*t*/);
-  // void jacob_delta(const Eigen::VectorXd& state, Eigen::VectorXd& jacobin,
-  //                  const double /*t*/);
-  // void jacob_v(const Eigen::VectorXd& state, Eigen::VectorXd& jacobin,
-  //              const double /*t*/);
-  // void jacob_steer_v(const Eigen::VectorXd& state, Eigen::VectorXd& jacobin,
-  //                    const double /*t*/);
-  // void jacob_throttle(const Eigen::VectorXd& state, Eigen::VectorXd& jacobin,
-  //                     const double /*t*/);
-
   Eigen::MatrixXd jacob(const Eigen::VectorXd& state);
   Eigen::MatrixXd jacob_numeric(const Eigen::VectorXd& state,
                                 const Eigen::VectorXd& actions);

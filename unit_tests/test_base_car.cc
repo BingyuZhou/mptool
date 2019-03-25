@@ -41,8 +41,8 @@ GTEST("TEST_BASE_CAR") {
     obj->set_initial_state({2.0f, 1.0f, 0.0f}, 5.0f, 2.0f, 0.0f);
     obj->set_sample(0.1);
     out << obj->get_state().transpose() << std::endl;
-    for (int i = 0; i < 200; ++i) {
-      obj->step(0.01, 0);
+    for (int i = 0; i < 100; ++i) {
+      obj->step(0.01, 0.5);
       out << obj->get_state().transpose() << std::endl;
     }
     out.close();

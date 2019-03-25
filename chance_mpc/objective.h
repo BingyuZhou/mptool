@@ -13,11 +13,12 @@ class obj {
       const Eigen::VectorXd& coeff, const double& t_sample,
       const boost::math::barycentric_rational<double>* ref_path_x,
       const boost::math::barycentric_rational<double>* ref_path_y,
-      const float& length, const double* x);
+      const float& length, const double* x, vector<double>& grad);
   /// Contour & lag error
   static void error(const double* x,
                     const boost::math::barycentric_rational<double>* ref_path_x,
                     const boost::math::barycentric_rational<double>* ref_path_y,
-                    double& e_contour, double& e_lag);
+                    double& e_contour, double& e_lag,
+                    vector<double>& grad_contour, vector<double>& grad_lag);
 };
 }  // namespace cmpc
