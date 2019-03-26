@@ -36,12 +36,13 @@ class constraint {
 
   /// Yaw regulation
   static double yaw_regulate(const double& v, const double& length,
-                             const double& steer_angle, const double& yaw_max);
+                             const double& steer_angle, const double& yaw_max,
+                             std::vector<double>& grad);
 
   /// Whole bunch of equality constraints (one step)
   static void equality_const_step(const uint16_t& action_dim,
                                   const uint16_t& state_dim, car* car_sim,
-                                  const double* x, std::vector<double>* result);
+                                  const double* x, std::vector<double>& result);
 
   /// Whole bunch of inequality cinstraints (one step)
   static void collision_const_step(const uint16_t& t, const pose& ego_pose,

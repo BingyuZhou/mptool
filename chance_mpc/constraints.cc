@@ -75,17 +75,34 @@ void constraint::road_boundary(const float& e_contour, const double& road_ub,
 
 double constraint::yaw_regulate(const double& v, const double& length,
                                 const double& steer_angle,
-                                const double& yaw_max) {
-  return abs(v / length * tan(steer_angle)) - yaw_max;
+                                const double& yaw_max, vector<double>& grad) {
+  grad.resize(8);
+  grad[0] = 0.0;
+  grad[1] = 0.0;
+  grad[2] = 0.0;
+  grad[3] = 0.0;
+  grad[4] = 0.0;
+  grad[5] = v / length / pow(cos(steer_angle), 2);
+  grad[6] = tan(steer_angle) / length;
+  grad[7] = 0.0;
+
+  double result = abs(v / length * tan(steer_angle)) - yaw_max;
+  if (result < 0) {
+    grad[5] *= -1;
+    grad[6] *= -1;
+  }
+
+  return result;
 }
 
 void constraint::equality_const_step(const uint16_t& action_dim,
                                      const uint16_t& state_dim, car* car_sim,
-                                     const double* x, vector<double>* result) {
+                                     const double* x, vector<double>& result) {
   uint16_t state_action_dim = action_dim + state_dim;
 
   auto new_state = single_equality_const(car_sim, x[0], x[1]);
-  for (int j = 0; j < state_dim; ++j) (*result)[j] = new_state(j) - x[j + 2];
+  result.resize(state_dim);
+  for (int j = 0; j < state_dim; ++j) result[j] = new_state(j) - x[j + 2];
 
 };  // namespace cmpc
 

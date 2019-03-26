@@ -68,8 +68,15 @@ void set_inequality_const(unsigned m, double* result, unsigned n,
   for (int i = 0; i < opt_data->horizon; ++i) {
     const double* current_x = x + i * opt_data->state_action_dim;
     double e_contour, e_lag;
+    vector<double> grad_contour, grad_lag;
     obj::error(current_x, opt_data->ref_path_x, opt_data->ref_path_y, e_contour,
-               e_lag);
+               e_lag, grad_contour, grad_lag);
+
+    // grad
+    if (grad) {
+      memcpy(grad + tail * n + i * opt_data->state_action_dim,
+             grad_contour.data(), sizeof(double) * grad_contour.size());
+    }
 
     double road_result[2];
     constraint::road_boundary(e_contour, opt_data->road_ub, opt_data->road_lb,
@@ -81,8 +88,14 @@ void set_inequality_const(unsigned m, double* result, unsigned n,
   // Yaw regulation
   for (int i = 0; i < opt_data->horizon; ++i) {
     const double* current_x = x + i * opt_data->state_action_dim;
-    result[tail] = constraint::yaw_regulate(current_x[6], opt_data->length,
-                                            current_x[5], opt_data->yaw_max);
+    vector<double> grad_yaw;
+    result[tail] =
+        constraint::yaw_regulate(current_x[6], opt_data->length, current_x[5],
+                                 opt_data->yaw_max, grad_yaw);
+    if (grad) {
+      memcpy(grad + tail * n + i * opt_data->state_action_dim, grad_yaw.data(),
+             sizeof(double) * grad_yaw.size());
+    }
     tail += 1;
   }
 
@@ -102,16 +115,16 @@ void set_equality_const(unsigned m, double* result, unsigned n, const double* x,
                         double* grad, void* data) {
   opt_set* opt_data = reinterpret_cast<opt_set*>(data);
   car* car_sim = new car(opt_data->length, opt_data->width, opt_data->sample);
-  car_sim->set_initial_state(opt_data->init_pose, opt_data->init_v,
-                             opt_data->init_steer, opt_data->init_dis);
+  car_sim->set_initial_state(opt_data->init_pose, opt_data->init_steer,
+                             opt_data->init_v, opt_data->init_dis);
 
-  auto eq_result = new vector<double>(opt_data->state_dim);
+  vector<double> eq_result;
   for (int i = 0; i < opt_data->horizon; ++i) {
     constraint::equality_const_step(opt_data->action_dim, opt_data->state_dim,
                                     car_sim, x + i * opt_data->state_action_dim,
                                     eq_result);
-    memcpy(result + i * opt_data->state_dim, eq_result->data(),
-           sizeof(double) * eq_result->size());
+    memcpy(result + i * opt_data->state_dim, eq_result.data(),
+           sizeof(double) * eq_result.size());
     // update gradient
     // gradient range: state_dim * x.size()
     // gradient order: \part c_i / \part x_j := grad[i*n+j]
@@ -139,7 +152,7 @@ void set_equality_const(unsigned m, double* result, unsigned n, const double* x,
     cost += result[i];
   }
   logging.add_eq(cost);
-  delete eq_result;
+
   delete car_sim;
 }
 
@@ -180,7 +193,7 @@ double* solve(const opt_set* opt_data) {
   if (r < 0) cout << r << endl;
 
   // Optimization
-  nlopt_set_maxeval(opt, 500);
+  nlopt_set_maxeval(opt, 300);
 
   // Initial guess
   double* x = new double[num_var];

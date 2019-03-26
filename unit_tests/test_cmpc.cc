@@ -21,7 +21,7 @@ GTEST("test_cmpc") {
   opt_data->state_dim = 6;
   opt_data->state_action_dim = 8;
   opt_data->sample = 0.1;
-  opt_data->horizon = 50;
+  opt_data->horizon = 20;
   double lb[8] = {-5.0, -30.0, -500.0, -200.0, -2 * M_PI, -1.0, 0.0, 0.0};
   double ub[8] = {5.0, 30.0, 500.0, 200.0, 2 * M_PI, 1.0, 16.0, 100.0};
   vector<double> lb_vec, ub_vec;
