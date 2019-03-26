@@ -20,14 +20,17 @@ namespace cmpc {
 double set_objective(unsigned n, const double* x, double* grad, void* data) {
   opt_set* opt_data = reinterpret_cast<opt_set*>(data);
   double sum_cost = 0;
+  vector<double> grad_step;
   for (int i = 0; i < opt_data->horizon; ++i) {
-    sum_cost +=
-        obj::step_cost(opt_data->weights, opt_data->sample,
-                       opt_data->ref_path_x, opt_data->ref_path_y,
-                       opt_data->length, x + i * opt_data->state_action_dim);
+    sum_cost += obj::step_cost(opt_data->weights, opt_data->sample,
+                               opt_data->ref_path_x, opt_data->ref_path_y,
+                               opt_data->length,
+                               x + i * opt_data->state_action_dim, grad_step);
+    if (grad)
+      memcpy(grad + i * opt_data->state_action_dim, grad_step.data(),
+             sizeof(double) * grad_step.size());
   }
-  if (grad) {
-  }
+
   // logging
   logging.add_cost(sum_cost);
   logging.add_x(x);
@@ -140,7 +143,7 @@ void set_equality_const(unsigned m, double* result, unsigned n, const double* x,
   delete car_sim;
 }
 
-/// Solve
+/// Solve mpc
 double* solve(const opt_set* opt_data) {
   logging.set_size(opt_data->horizon, opt_data->state_action_dim);
 
