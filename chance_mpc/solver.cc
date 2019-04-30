@@ -149,7 +149,7 @@ void set_equality_const(unsigned m, double* result, unsigned n, const double* x,
   // log cost
   double cost = 0;
   for (int i = 0; i < opt_data->horizon * opt_data->state_dim; ++i) {
-    cost += result[i];
+    cost += abs(result[i]);
   }
   logging.add_eq(cost);
 
@@ -164,11 +164,13 @@ double* solve(const opt_set* opt_data) {
   const int num_var = opt_data->horizon * opt_data->state_action_dim;
 
   // Optimizer
-  nlopt_opt opt = nlopt_create(nlopt_algorithm::NLOPT_LN_AUGLAG_EQ, num_var);
+  nlopt_opt opt = nlopt_create(nlopt_algorithm::NLOPT_LN_COBYLA, num_var);
+  // nlopt_opt local_opt = nlopt_create(nlopt_algorithm::NLOPT_LN_COBYLA,
+  // num_var);
 
   // Vars boundary
-  nlopt_set_lower_bounds(opt, opt_data->lb);
-  nlopt_set_upper_bounds(opt, opt_data->ub);
+  auto lr = nlopt_set_lower_bounds(opt, opt_data->lb);
+  auto ur = nlopt_set_upper_bounds(opt, opt_data->ub);
 
   // Objective
   nlopt_set_min_objective(opt, set_objective, (void*)opt_data);
@@ -193,7 +195,14 @@ double* solve(const opt_set* opt_data) {
   if (r < 0) cout << r << endl;
 
   // Optimization
-  nlopt_set_maxeval(opt, 300);
+  // nlopt_set_maxeval(opt, 600);
+  nlopt_set_ftol_rel(opt, 1e-1);
+  nlopt_set_xtol_rel(opt, 1);
+
+  // nlopt_set_ftol_rel(local_opt, 1e-1);
+  // nlopt_set_xtol_rel(local_opt, 1);
+
+  // nlopt_set_local_optimizer(opt, local_opt);
 
   // Initial guess
   double* x = new double[num_var];

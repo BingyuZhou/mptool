@@ -54,7 +54,8 @@ class logger {
               << "Eq cost: " << m_eq << "\n"
               << "x: " << m_x[2] << "\n"
               << "y: " << m_x[3] << "\n"
-              << "theta: " << m_x[4] << std::endl;
+              << "theta: " << m_x[4] << "\n"
+              << "dis: " << m_x[7] << std::endl;
   }
 
   void set_size(int horizon, int state_action_num) {

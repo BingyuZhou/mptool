@@ -31,7 +31,7 @@ class constraint {
                             double& ego_radius);
 
   /// Road boundary
-  static void road_boundary(const float& e_contour, const double& road_ub,
+  static void road_boundary(const double& e_contour, const double& road_ub,
                             const double& road_lb, double* result);
 
   /// Yaw regulation

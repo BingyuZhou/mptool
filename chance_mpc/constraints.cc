@@ -67,7 +67,7 @@ Eigen::VectorXd constraint::collision_avoidance(
   return result;
 };
 
-void constraint::road_boundary(const float& e_contour, const double& road_ub,
+void constraint::road_boundary(const double& e_contour, const double& road_ub,
                                const double& road_lb, double* result) {
   result[0] = e_contour - road_ub;
   result[1] = road_lb - e_contour;
@@ -102,7 +102,7 @@ void constraint::equality_const_step(const uint16_t& action_dim,
 
   auto new_state = single_equality_const(car_sim, x[0], x[1]);
   result.resize(state_dim);
-  for (int j = 0; j < state_dim; ++j) result[j] = new_state(j) - x[j + 2];
+  for (int j = 0; j < state_dim; ++j) result[j] = x[j + 2] - new_state(j);
 
 };  // namespace cmpc
 

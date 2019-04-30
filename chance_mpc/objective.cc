@@ -29,6 +29,7 @@ double obj::step_cost(
   double theta_d = x[6] / length * tan(x[5]);
   terms(5) = theta_d * theta_d;  // yaw rate
 
+  double cost = coeff.dot(terms);
   // grad
   double d_theta_d_v = tan(x[5]) / length;
   double d_theta_d_delta = x[6] / length / pow(cos(x[5]), 2);
@@ -53,16 +54,16 @@ void obj::error(const double* x,
                 const boost::math::barycentric_rational<double>* ref_path_y,
                 double& e_contour, double& e_lag, vector<double>& grad_contour,
                 vector<double>& grad_lag) {
-  float s = x[7];
-  float x_ref = (*ref_path_x)(s);
-  float y_ref = (*ref_path_y)(s);
+  double s = x[7];
+  double x_ref = (*ref_path_x)(s);
+  double y_ref = (*ref_path_y)(s);
 
-  float dx_ref = ref_path_x->prime(s);
-  float dy_ref = ref_path_y->prime(s);
+  double dx_ref = ref_path_x->prime(s);
+  double dy_ref = ref_path_y->prime(s);
 
-  float tangent = std::sqrt(dx_ref * dx_ref + dy_ref * dy_ref);
-  float cos_longit = dx_ref / tangent;
-  float sin_longit = dy_ref / tangent;
+  double tangent = std::sqrt(dx_ref * dx_ref + dy_ref * dy_ref);
+  double cos_longit = dx_ref / tangent;
+  double sin_longit = dy_ref / tangent;
 
   e_contour = sin_longit * (x[2] - x_ref) - cos_longit * (x[3] - y_ref);
   e_lag = cos_longit * (x[2] - x_ref) + sin_longit * (x[3] - y_ref);
