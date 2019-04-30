@@ -102,7 +102,7 @@ void constraint::equality_const_step(const uint16_t& action_dim,
 
   auto new_state = single_equality_const(car_sim, x[0], x[1]);
   result.resize(state_dim);
-  for (int j = 0; j < state_dim; ++j) result[j] = x[j + 2] - new_state(j);
+  for (int j = 0; j < state_dim; ++j) result[j] = new_state(j) - x[j + 2];
 
 };  // namespace cmpc
 

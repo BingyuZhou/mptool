@@ -142,7 +142,7 @@ GTEST("test_cmpc") {
 
     for (int i = 0; i < opt_data->horizon; ++i) {
       int slice = i * opt_data->state_action_dim;
-      f << "throttle: " << result[slice] << " v_steer: " << result[slice + 1]
+      f << "v_steer: " << result[slice] << " acc: " << result[slice + 1]
         << " x: " << result[slice + 2] << " y: " << result[slice + 3]
         << " theta: " << result[slice + 4]
         << " steer angle: " << result[slice + 5] << " v: " << result[slice + 6]

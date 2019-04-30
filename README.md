@@ -7,7 +7,7 @@ The toolkit for motoin planning tasks in robotics.
 
 ## Dependencies
 
-- Boost >= 1.58
+- Boost >= 1.69
 - Jupyter
 
 Package used for unit test:

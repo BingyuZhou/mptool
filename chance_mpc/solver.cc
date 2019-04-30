@@ -164,7 +164,7 @@ double* solve(const opt_set* opt_data) {
   const int num_var = opt_data->horizon * opt_data->state_action_dim;
 
   // Optimizer
-  nlopt_opt opt = nlopt_create(nlopt_algorithm::NLOPT_LN_COBYLA, num_var);
+  nlopt_opt opt = nlopt_create(nlopt_algorithm::NLOPT_LD_SLSQP, num_var);
   // nlopt_opt local_opt = nlopt_create(nlopt_algorithm::NLOPT_LN_COBYLA,
   // num_var);
 
@@ -180,7 +180,7 @@ double* solve(const opt_set* opt_data) {
   nlopt_result r = nlopt_add_equality_mconstraint(
       opt, opt_data->state_dim * opt_data->horizon, set_equality_const,
       (void*)opt_data, tol_eq.data());
-  if (r < 0) cout << r << endl;
+  if (r < 0) cout << "add equality" << r << endl;
 
   // Inequality constrs
   // Number of collision avoidance inequalities
@@ -192,12 +192,12 @@ double* solve(const opt_set* opt_data) {
   vector<double> tol_ineq(num_ineq, 1e-3);
   r = nlopt_add_inequality_mconstraint(opt, num_ineq, set_inequality_const,
                                        (void*)opt_data, tol_ineq.data());
-  if (r < 0) cout << r << endl;
+  if (r < 0) cout << "add inequality" << r << endl;
 
   // Optimization
   // nlopt_set_maxeval(opt, 600);
-  nlopt_set_ftol_rel(opt, 1e-1);
-  nlopt_set_xtol_rel(opt, 1);
+  nlopt_set_ftol_rel(opt, 1e-2);
+  nlopt_set_xtol_rel(opt, 1e-1);
 
   // nlopt_set_ftol_rel(local_opt, 1e-1);
   // nlopt_set_xtol_rel(local_opt, 1);
