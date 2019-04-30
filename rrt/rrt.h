@@ -18,6 +18,7 @@
 #include <vector>
 
 //------------------------DECLARITION------------------------
+
 template <class PointType>
 class rrt_node {
   float m_cost;
@@ -42,6 +43,9 @@ struct rrt_node_hash {
     return boost::hash<PointType>()(obj.m_value);
   }
 };
+template <class PointType>
+using NodeMap = std::unordered_map<PointType, rrt_node<PointType> *,
+                                   rrt_node_hash<PointType>>;
 
 template <class PointType>
 class rrt {
@@ -54,7 +58,8 @@ class rrt {
   const int m_steer_radius;
   const float EPSILON = 0.05f;  // distance tolerant at goal location
   const float m_bias = 0.1f;    // bias of goal distribution
-  std::unordered_map<PointType, rrt_node<PointType> *, rrt_node_hash<PointType>>
+
+  NodeMap<PointType>
       m_node_map;  // have to use map, since we need to modify the node
   rrt_node<PointType> *m_reached;  // reached point near goal
 
@@ -214,8 +219,7 @@ bool rrt<PointType>::extend(const PointType &sampled_node) {
   PointType nearest_val = my_kdtree.nearest_neighbor(
       sampled_node);  // find the nearest neighbor in kdtree
 
-  typename std::unordered_map<PointType, rrt_node<PointType> *,
-                              rrt_node_hash<PointType>>::iterator nearest_it =
+  typename NodeMap<PointType>::iterator nearest_it =
       m_node_map.find(nearest_val);  // find the equivalent node in rrt
   assert(nearest_it != m_node_map.end());
 
