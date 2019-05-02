@@ -9,6 +9,7 @@
 #include "obs.h"
 
 #include <stdint.h>
+#include <iostream>
 #include <vector>
 
 namespace cmpc {
@@ -40,6 +41,16 @@ struct opt_set {
   double yaw_max;  ///< Max yaw rate
   double* lb;      ///< steer_v, throttle, x, y, theta, delta, v, dis
   double* ub;
+
+  void update(const double* result) {
+    init_pose.x = result[2];
+    init_pose.y = result[3];
+    init_pose.heading = result[4];
+    init_steer = result[5];
+    init_v = result[6];
+    init_dis = result[7];
+    std::cout << result[7] << std::endl;
+  }
 };
 
 /// Chance-constraint MPC
@@ -55,6 +66,6 @@ void set_equality_const(unsigned m, double* result, unsigned n, const double* x,
                         double* grad, void* data);
 
 /// Solve
-double* solve(const opt_set* opt_data);
+void solve(double* x, const opt_set* opt_data);
 
 };  // namespace cmpc

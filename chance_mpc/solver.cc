@@ -157,14 +157,15 @@ void set_equality_const(unsigned m, double* result, unsigned n, const double* x,
 }
 
 /// Solve mpc
-double* solve(const opt_set* opt_data) {
+void solve(double* x, const opt_set* opt_data) {
   logging.set_size(opt_data->horizon, opt_data->state_action_dim);
+  logging.set_freq(100);
 
   // Number of optimization variables
   const int num_var = opt_data->horizon * opt_data->state_action_dim;
 
   // Optimizer
-  nlopt_opt opt = nlopt_create(nlopt_algorithm::NLOPT_LD_SLSQP, num_var);
+  nlopt_opt opt = nlopt_create(nlopt_algorithm::NLOPT_LN_COBYLA, num_var);
   // nlopt_opt local_opt = nlopt_create(nlopt_algorithm::NLOPT_LN_COBYLA,
   // num_var);
 
@@ -196,32 +197,21 @@ double* solve(const opt_set* opt_data) {
 
   // Optimization
   // nlopt_set_maxeval(opt, 600);
-  nlopt_set_ftol_rel(opt, 1e-2);
-  nlopt_set_xtol_rel(opt, 1e-1);
+  nlopt_set_ftol_rel(opt, 1);
+  nlopt_set_xtol_rel(opt, 1);
 
   // nlopt_set_ftol_rel(local_opt, 1e-1);
   // nlopt_set_xtol_rel(local_opt, 1);
 
   // nlopt_set_local_optimizer(opt, local_opt);
 
-  // Initial guess
-  double* x = new double[num_var];
-
-  for (int i = 0; i < opt_data->horizon; ++i) {
-    x[i * opt_data->state_action_dim + 2] = opt_data->init_pose.x;
-    x[i * opt_data->state_action_dim + 3] = opt_data->init_pose.y;
-    x[i * opt_data->state_action_dim + 4] = opt_data->init_pose.heading;
-  }
-
   double minf;
   if (nlopt_optimize(opt, x, &minf) < 0) {
     printf("nlopt failed! %d\n", nlopt_optimize(opt, x, &minf));
   } else {
-    printf("found minimum cost %g\n", minf);
+    printf("FOUND MINIMUM COST %g\n", minf);
   }
   nlopt_destroy(opt);
   logging.~logger();
-
-  return x;
 }
 }  // namespace cmpc

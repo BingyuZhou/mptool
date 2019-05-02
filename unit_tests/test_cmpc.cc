@@ -135,18 +135,46 @@ GTEST("test_cmpc") {
 
     opt_data->yaw_max = 50;
 
-    double* result = cmpc::solve(opt_data);
+    double* result = new double[opt_data->horizon * opt_data->state_action_dim];
 
-    ofstream f;
-    f.open("traj.csv");
-
+    // initial guess
     for (int i = 0; i < opt_data->horizon; ++i) {
-      int slice = i * opt_data->state_action_dim;
-      f << "v_steer: " << result[slice] << " acc: " << result[slice + 1]
-        << " x: " << result[slice + 2] << " y: " << result[slice + 3]
-        << " theta: " << result[slice + 4]
-        << " steer angle: " << result[slice + 5] << " v: " << result[slice + 6]
-        << " distance: " << result[slice + 7] << endl;
+      // x[i * opt_data->state_action_dim + 0] = 0;
+      // x[i * opt_data->state_action_dim + 1] = 0;
+      result[i * opt_data->state_action_dim + 2] = opt_data->init_pose.x;
+      result[i * opt_data->state_action_dim + 3] = opt_data->init_pose.y;
+      result[i * opt_data->state_action_dim + 4] = opt_data->init_pose.heading;
+      // x[i * opt_data->state_action_dim + 5] = opt_data->init_steer;
+      // x[i * opt_data->state_action_dim + 6] = opt_data->init_v;
+      result[i * opt_data->state_action_dim + 7] = opt_data->init_dis;
+    }
+    for (int i = 0; i < 10; ++i) {
+      cmpc::solve(result, opt_data);
+
+      opt_data->update(result);
+
+      ofstream f;
+      f.open("traj" + to_string(i) + ".csv");
+
+      for (int i = 0; i < opt_data->horizon; ++i) {
+        int slice = i * opt_data->state_action_dim;
+        f << "v_steer: " << result[slice] << " acc: " << result[slice + 1]
+          << " x: " << result[slice + 2] << " y: " << result[slice + 3]
+          << " theta: " << result[slice + 4]
+          << " steer angle: " << result[slice + 5]
+          << " v: " << result[slice + 6] << " distance: " << result[slice + 7]
+          << endl;
+      }
+
+      double* tmp = new double[opt_data->horizon * opt_data->state_action_dim];
+      uint16_t last_col = opt_data->state_action_dim * (opt_data->horizon - 1);
+
+      memcpy(tmp, result + opt_data->state_action_dim,
+             sizeof(double) * last_col);
+      memcpy(tmp + last_col, result + last_col,
+             sizeof(double) * opt_data->state_action_dim);
+      delete[] result;
+      result = tmp;
     }
   }
 }
