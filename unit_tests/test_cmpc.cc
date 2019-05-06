@@ -2,6 +2,7 @@
 #include "base_car.h"
 #include "boost/math/interpolators/barycentric_rational.hpp"
 #include "boost/math/interpolators/cubic_b_spline.hpp"
+#include "objective.h"
 #include "road_rep.h"
 #include "solver.h"
 
@@ -111,6 +112,58 @@ GTEST("test_cmpc") {
     file.close();
 
     delete clothoid;
+  }
+
+  SHOULD("road_segment_gradient") {
+    int num_waypoints = 4;
+    vector<double> x_way{27.0, 27.0, 17.0, -100.0};
+    vector<double> y_way{-50.0, -2.0, 8.0, 8.0};
+    vector<double> theta_way{M_PI_2, M_PI_2, M_PI, M_PI};
+
+    road_rep road;
+    vector<boost::math::barycentric_rational<double>*> ref(2);
+    double length;
+    road.build_representation(x_way, y_way, theta_way, 20, ref, length);
+
+    double* x = new double[8];
+    x[0] = 0;
+    x[1] = 0;
+    x[2] = 27;
+    x[3] = -45;
+    x[4] = M_PI_2;
+    x[5] = 0;
+    x[6] = 5;
+    x[7] = 5;
+    double diff = obj::grad_error(x, ref[0], ref[1]);
+    delete[] x;
+
+    EXPECT_LE(diff, 0.01);
+  }
+
+  SHOULD("objective_gradient") {
+    int num_waypoints = 4;
+    vector<double> x_way{27.0, 27.0, 17.0, -100.0};
+    vector<double> y_way{-50.0, -2.0, 8.0, 8.0};
+    vector<double> theta_way{M_PI_2, M_PI_2, M_PI, M_PI};
+
+    road_rep road;
+    vector<boost::math::barycentric_rational<double>*> ref(2);
+    double length;
+    road.build_representation(x_way, y_way, theta_way, 20, ref, length);
+
+    double* x = new double[8];
+    x[0] = 0;
+    x[1] = 0;
+    x[2] = 27;
+    x[3] = -45;
+    x[4] = M_PI_2;
+    x[5] = 0;
+    x[6] = 5;
+    x[7] = 5;
+    double diff = obj::grad(ref[0], ref[1], x);
+    delete[] x;
+
+    EXPECT_LE(diff, 0.01);
   }
 
   SHOULD("cmpc_planning") {
