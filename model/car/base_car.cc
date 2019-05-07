@@ -3,11 +3,14 @@
 
 #include <boost/numeric/odeint/stepper/runge_kutta4.hpp>
 #include <cmath>
+#include <iostream>
 
 using namespace boost::numeric::odeint;
 using namespace Eigen;
 
 const double EPS = 1E-4;
+const int NUM_ACT = 2;
+const int NUM_STATE = 6;
 
 car::car(const float& l, const float& w, const double& sample)
     : m_length(l),
@@ -56,7 +59,7 @@ VectorXd car::step(const VectorXd& state, const VectorXd& actions) {
 /// Jacobin of dynamics over action and state pairs.
 /// Jacobin:=[/part f\ /part u,/part f\ /part x]
 MatrixXd car::jacob(const VectorXd& state) {
-  MatrixXd jacobin(state.size(), state.size() + 2);
+  MatrixXd jacobin = MatrixXd::Zero(NUM_STATE, NUM_STATE + NUM_ACT);
   jacobin(0, 4) = -state(4) * sin(state(2));
   jacobin(1, 4) = state(4) * cos(state(2));
   jacobin(2, 5) = state(4) / m_length / pow(cos(state(3)), 2);
@@ -73,6 +76,24 @@ MatrixXd car::jacob(const VectorXd& state) {
   }
 
   return jacobin;
+}
+
+void car::jacob_action(MatrixXd& jacobin) {
+  jacobin = MatrixXd::Zero(NUM_STATE, NUM_ACT);
+
+  jacobin(3, 0) = 1.0;
+  jacobin(4, 1) = 1.0;
+}
+
+void car::jacob_state(const VectorXd& state, MatrixXd& jacobin) {
+  jacobin = MatrixXd::Zero(NUM_STATE, NUM_STATE);
+  jacobin(0, 2) = -state(4) * sin(state(2));
+  jacobin(1, 2) = state(4) * cos(state(2));
+  jacobin(2, 3) = state(4) / m_length / pow(cos(state(3)), 2);
+  jacobin(0, 4) = cos(state(2));
+  jacobin(1, 4) = sin(state(2));
+  jacobin(2, 4) = tan(state(3)) / m_length;
+  jacobin(5, 4) = 1;
 }
 
 /// Numerical approx of jacobin

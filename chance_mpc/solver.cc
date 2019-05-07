@@ -18,6 +18,8 @@ logger logging("/tmp/");
 namespace cmpc {
 
 double set_objective(unsigned n, const double* x, double* grad, void* data) {
+  if (grad) memset(grad, 0, sizeof(double) * n);
+
   opt_set* opt_data = reinterpret_cast<opt_set*>(data);
   double sum_cost = 0;
   vector<double> grad_step;
@@ -42,6 +44,8 @@ double set_objective(unsigned n, const double* x, double* grad, void* data) {
 /// Inequality constraints
 void set_inequality_const(unsigned m, double* result, unsigned n,
                           const double* x, double* grad, void* data) {
+  if (grad) memset(grad, 0, sizeof(double) * m * n);
+
   opt_set* opt_data = reinterpret_cast<opt_set*>(data);
   int tail = 0;
   // Collision
@@ -75,6 +79,10 @@ void set_inequality_const(unsigned m, double* result, unsigned n,
     // grad
     if (grad) {
       memcpy(grad + tail * n + i * opt_data->state_action_dim,
+             grad_contour.data(), sizeof(double) * grad_contour.size());
+      for_each(grad_contour.begin(), grad_contour.end(),
+               [](double& g) { g *= -1; });
+      memcpy(grad + (tail + 1) * n + i * opt_data->state_action_dim,
              grad_contour.data(), sizeof(double) * grad_contour.size());
     }
 
@@ -113,6 +121,8 @@ void set_inequality_const(unsigned m, double* result, unsigned n,
 /// Equality constraints
 void set_equality_const(unsigned m, double* result, unsigned n, const double* x,
                         double* grad, void* data) {
+  if (grad) memset(grad, 0, sizeof(double) * m * n);
+
   opt_set* opt_data = reinterpret_cast<opt_set*>(data);
   car* car_sim = new car(opt_data->length, opt_data->width, opt_data->sample);
   car_sim->set_initial_state(opt_data->init_pose, opt_data->init_steer,
@@ -130,20 +140,34 @@ void set_equality_const(unsigned m, double* result, unsigned n, const double* x,
     // gradient order: \part c_i / \part x_j := grad[i*n+j]
     if (grad) {
       if (i > 0) {
-        const VectorXd x0 = Map<const VectorXd>(
+        const VectorXd state = Map<const VectorXd>(
             x + (i - 1) * opt_data->state_action_dim + opt_data->action_dim,
             opt_data->state_dim);
-        MatrixXd jacob = car_sim->jacob(x0);
-        for (int j = 0; j < jacob.rows(); ++j) {
-          double* slice = grad + i * n * opt_data->state_dim + j * n +
-                          (i - 1) * opt_data->state_action_dim;
-          memcpy(slice, jacob.row(j).data(), sizeof(double) * jacob.cols());
+        MatrixXd jacob_x(opt_data->state_dim, opt_data->state_dim);
+        car_sim->jacob_state(state, jacob_x);
+
+        MatrixXd jacob_u(opt_data->state_dim, opt_data->action_dim);
+        car_sim->jacob_action(jacob_u);
+
+        for (int j = 0; j < opt_data->state_dim; ++j) {
+          int slice = i * opt_data->state_dim * n +
+                      (opt_data->action_dim +
+                       (i - 1) * opt_data->state_action_dim + j * n);
+          memcpy(grad + slice, jacob_x.row(j).data(),
+                 sizeof(double) * jacob_x.cols());
+          memcpy(grad + slice + opt_data->state_dim, jacob_u.row(j).data(),
+                 sizeof(double) * jacob_u.cols());
+          grad[slice + opt_data->state_action_dim + j] = -1.0;
+        }
+      } else {
+        MatrixXd jacob_u(opt_data->state_dim, opt_data->action_dim);
+        car_sim->jacob_action(jacob_u);
+        for (int j = 0; j < opt_data->state_dim; ++j) {
+          memcpy(grad + j * n, jacob_u.row(j).data(),
+                 sizeof(double) * jacob_u.cols());
+          grad[opt_data->action_dim + j * n + j] = -1.0;
         }
       }
-
-      for (int j = 0; j < opt_data->state_dim; ++j)
-        grad[i * n + opt_data->action_dim + j * (opt_data->state_dim + 1)] =
-            -1.0;
     }
   }
   // log cost
@@ -159,13 +183,13 @@ void set_equality_const(unsigned m, double* result, unsigned n, const double* x,
 /// Solve mpc
 void solve(double* x, const opt_set* opt_data) {
   logging.set_size(opt_data->horizon, opt_data->state_action_dim);
-  logging.set_freq(100);
+  logging.set_freq(1);
 
   // Number of optimization variables
   const int num_var = opt_data->horizon * opt_data->state_action_dim;
 
   // Optimizer
-  nlopt_opt opt = nlopt_create(nlopt_algorithm::NLOPT_LN_COBYLA, num_var);
+  nlopt_opt opt = nlopt_create(nlopt_algorithm::NLOPT_LD_SLSQP, num_var);
   // nlopt_opt local_opt = nlopt_create(nlopt_algorithm::NLOPT_LN_COBYLA,
   // num_var);
 
@@ -198,7 +222,7 @@ void solve(double* x, const opt_set* opt_data) {
   // Optimization
   // nlopt_set_maxeval(opt, 600);
   nlopt_set_ftol_rel(opt, 1);
-  nlopt_set_xtol_rel(opt, 1);
+  nlopt_set_xtol_rel(opt, 1e-2);
 
   // nlopt_set_ftol_rel(local_opt, 1e-1);
   // nlopt_set_xtol_rel(local_opt, 1);

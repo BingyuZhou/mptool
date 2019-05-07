@@ -32,6 +32,9 @@ class car {
                        const Eigen::VectorXd& actions);
 
   Eigen::MatrixXd jacob(const Eigen::VectorXd& state);
+  void jacob_action(Eigen::MatrixXd& jacobin);
+  void jacob_state(const Eigen::VectorXd& state, Eigen::MatrixXd& jacobin);
+
   Eigen::MatrixXd jacob_numeric(const Eigen::VectorXd& state,
                                 const Eigen::VectorXd& actions);
   float get_l() const;
