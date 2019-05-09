@@ -42,14 +42,13 @@ struct opt_set {
   double* lb;      ///< steer_v, throttle, x, y, theta, delta, v, dis
   double* ub;
 
-  void update(const double* result) {
-    init_pose.x = result[2];
-    init_pose.y = result[3];
-    init_pose.heading = result[4];
-    init_steer = result[5];
-    init_v = result[6];
-    init_dis = result[7];
-    std::cout << result[7] << std::endl;
+  void update(const Eigen::VectorXd& state) {
+    init_pose.x = state(0);
+    init_pose.y = state(1);
+    init_pose.heading = state(2);
+    init_steer = state(3);
+    init_v = state(4);
+    init_dis = state(5);
   }
 };
 

@@ -41,7 +41,7 @@ GTEST("test_cmpc") {
   opt_data->length = 4.0f;
 
   Eigen::VectorXd weights(6);
-  weights << 1.0, 1.0, -1.0, 0.8, 1.0, 1.0;
+  weights << 0.1, 0.1, -1.0, 0.5, 0.1, 1.0;
   opt_data->weights = weights;  // e_c, e_lag, progress, acc, steer_v, yaw
 
   SHOULD("check_optimizer_setting") {
@@ -201,10 +201,17 @@ GTEST("test_cmpc") {
       // x[i * opt_data->state_action_dim + 6] = opt_data->init_v;
       result[i * opt_data->state_action_dim + 7] = opt_data->init_dis;
     }
-    for (int i = 0; i < 10; ++i) {
+
+    car* ego_car = new car(opt_data->length, opt_data->width, opt_data->sample);
+    ego_car->set_initial_state(opt_data->init_pose, opt_data->init_steer,
+                               opt_data->init_v, opt_data->init_dis);
+
+    for (int i = 0; i < 100; ++i) {
       cmpc::solve(result, opt_data);
 
-      opt_data->update(result);
+      // Update ego-veh
+      ego_car->step(result[0], result[1]);
+      opt_data->update(ego_car->get_state());
 
       ofstream f;
       f.open("traj" + to_string(i) + ".csv");

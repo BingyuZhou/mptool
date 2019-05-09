@@ -201,7 +201,7 @@ void solve(double* x, const opt_set* opt_data) {
   nlopt_set_min_objective(opt, set_objective, (void*)opt_data);
 
   // Equality constrs
-  vector<double> tol_eq(opt_data->state_dim * opt_data->horizon, 1e-3);
+  vector<double> tol_eq(opt_data->state_dim * opt_data->horizon, 1e-5);
   nlopt_result r = nlopt_add_equality_mconstraint(
       opt, opt_data->state_dim * opt_data->horizon, set_equality_const,
       (void*)opt_data, tol_eq.data());
@@ -221,8 +221,8 @@ void solve(double* x, const opt_set* opt_data) {
 
   // Optimization
   // nlopt_set_maxeval(opt, 600);
-  nlopt_set_ftol_rel(opt, 1);
-  nlopt_set_xtol_rel(opt, 1e-2);
+  nlopt_set_ftol_rel(opt, 1e-3);
+  nlopt_set_xtol_rel(opt, 1e-3);
 
   // nlopt_set_ftol_rel(local_opt, 1e-1);
   // nlopt_set_xtol_rel(local_opt, 1);
@@ -236,6 +236,5 @@ void solve(double* x, const opt_set* opt_data) {
     printf("FOUND MINIMUM COST %g\n", minf);
   }
   nlopt_destroy(opt);
-  logging.~logger();
 }
 }  // namespace cmpc

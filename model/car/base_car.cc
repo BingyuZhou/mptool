@@ -26,12 +26,13 @@ void car::step(const double& steer_v, const double& throttle) {
   std::function<VectorXd(const VectorXd&, const VectorXd&)> dynamics =
       [&](const VectorXd& state, const VectorXd& actions) {
         VectorXd x_dot(6);
-        x_dot(0) = state(4) * cos(state(2));
-        x_dot(1) = state(4) * sin(state(2));
-        x_dot(2) = state(4) * tan(state(3)) / m_length;
-        x_dot(3) = actions[0];
-        x_dot(4) = actions[1];
-        x_dot(5) = state(4);
+        x_dot(0) = state(4) * cos(state(2));  // d_x = v cos(theta)
+        x_dot(1) = state(4) * sin(state(2));  // d_y = v sin(theta)
+        x_dot(2) =
+            state(4) * tan(state(3)) / m_length;  // d_theta = v tan(delta) / L
+        x_dot(3) = actions[0];                    // d_delta = u_delta
+        x_dot(4) = actions[1];                    // d_v = u_v
+        x_dot(5) = state(4);                      // d_s = v
 
         return x_dot;
       };
@@ -60,6 +61,7 @@ VectorXd car::step(const VectorXd& state, const VectorXd& actions) {
 /// Jacobin:=[/part f\ /part u,/part f\ /part x]
 MatrixXd car::jacob(const VectorXd& state) {
   MatrixXd jacobin = MatrixXd::Zero(NUM_STATE, NUM_STATE + NUM_ACT);
+
   jacobin(0, 4) = -state(4) * sin(state(2));
   jacobin(1, 4) = state(4) * cos(state(2));
   jacobin(2, 5) = state(4) / m_length / pow(cos(state(3)), 2);
@@ -93,7 +95,7 @@ void car::jacob_state(const VectorXd& state, MatrixXd& jacobin) {
   jacobin(0, 4) = cos(state(2));
   jacobin(1, 4) = sin(state(2));
   jacobin(2, 4) = tan(state(3)) / m_length;
-  jacobin(5, 4) = 1;
+  jacobin(5, 4) = 1.0;
 }
 
 /// Numerical approx of jacobin
