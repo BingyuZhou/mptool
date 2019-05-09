@@ -8,6 +8,15 @@
 using namespace std;
 using namespace Eigen;
 const float EPS = 1E-3;
+void dynamics(const VectorXd& state, VectorXd& x_dot, const double t) {
+  VectorXd x_dot(6);
+  x_dot(0) = state(4) * cos(state(2));        // d_x = v cos(theta)
+  x_dot(1) = state(4) * sin(state(2));        // d_y = v sin(theta)
+  x_dot(2) = state(4) * tan(state(3)) / 4.0;  // d_theta = v tan(delta) / L
+  x_dot(3) = 0.01;                            // d_delta = u_delta
+  x_dot(4) = 0.5;                             // d_v = u_v
+  x_dot(5) = state(4);                        // d_s = v
+};
 
 GTEST("TEST_BASE_CAR") {
   car* obj = new car(3.0f, 1.8f, 1);
@@ -52,17 +61,13 @@ GTEST("TEST_BASE_CAR") {
       out << obj->get_state().transpose() << std::endl;
     }
     out.close();
+
+    boost::numeric::odeint::runge_kutta4<VectorXd> stepper;
+    VectorXd s;
+    s << 2.0, 1.0, 0.0, 5.0, 2.0, 0.0;
+    for (int i = 0; i < 100; ++i) {
+      stepper.do_step(dynamics, s, 0.1, 0.1);
+    }
   }
   delete obj;
-
-  void dynamics(const VectorXd& state, VectorXd& x_dot, const double t) {
-    VectorXd x_dot(6);
-    x_dot(0) = state(4) * cos(state(2));  // d_x = v cos(theta)
-    x_dot(1) = state(4) * sin(state(2));  // d_y = v sin(theta)
-    x_dot(2) =
-        state(4) * tan(state(3)) / m_length;  // d_theta = v tan(delta) / L
-    x_dot(3) = 0.01;                          // d_delta = u_delta
-    x_dot(4) = 0.5;                           // d_v = u_v
-    x_dot(5) = state(4);                      // d_s = v
-  };
 }
